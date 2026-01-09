@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/models.dart';
 import '../providers/kanban_provider.dart';
@@ -24,6 +25,8 @@ class KanbanColumnWidget extends ConsumerStatefulWidget {
 class _KanbanColumnWidgetState extends ConsumerState<KanbanColumnWidget> {
   bool _isHighlighted = false;
   late ScrollController _scrollController;
+  Timer? _scrollTimer;
+  double _currentPointerY = 0;
 
   @override
   void initState() {
@@ -34,41 +37,42 @@ class _KanbanColumnWidgetState extends ConsumerState<KanbanColumnWidget> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _scrollTimer?.cancel();
     super.dispose();
   }
 
-  void _handleDragAutoScroll(DragTargetDetails<Map<String, dynamic>> details) {
-    if (!mounted) return;
+  void _startAutoScroll() {
+    _scrollTimer?.cancel();
+    _scrollTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+      if (!mounted) return;
+      // We need the render box to know the height of this specific column widget
+      final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
+      if (renderBox == null) return;
 
-    final RenderBox renderBox = context.findRenderObject() as RenderBox;
-    final localPosition = renderBox.globalToLocal(details.offset);
-    final height = renderBox.size.height;
+      final height = renderBox.size.height;
+      const threshold = 60.0;
+      const scrollSpeed = 8.0;
 
-    // Threshold from top/bottom to start scrolling
-    const threshold = 60.0;
-    const scrollSpeed = 8.0;
+      // Note: _currentPointerY is in local coordinates of this column
+      if (_currentPointerY < threshold) {
+        // Scroll Up
+        final newOffset = _scrollController.offset - scrollSpeed;
+        _scrollController.jumpTo(
+          newOffset.clamp(0, _scrollController.position.maxScrollExtent),
+        );
+      } else if (_currentPointerY > height - threshold) {
+        // Scroll Down
+        final newOffset = _scrollController.offset + scrollSpeed;
+        _scrollController.jumpTo(
+          newOffset.clamp(0, _scrollController.position.maxScrollExtent),
+        );
+      }
+    });
+  }
 
-    if (localPosition.dy < threshold) {
-      // Scroll Up
-      _scrollController.animateTo(
-        (_scrollController.offset - scrollSpeed).clamp(
-          0,
-          _scrollController.position.maxScrollExtent,
-        ),
-        duration: const Duration(milliseconds: 50),
-        curve: Curves.linear,
-      );
-    } else if (localPosition.dy > height - threshold) {
-      // Scroll Down
-      _scrollController.animateTo(
-        (_scrollController.offset + scrollSpeed).clamp(
-          0,
-          _scrollController.position.maxScrollExtent,
-        ),
-        duration: const Duration(milliseconds: 50),
-        curve: Curves.linear,
-      );
-    }
+  void _stopAutoScroll() {
+    _scrollTimer?.cancel();
+    _scrollTimer = null;
   }
 
   @override
@@ -102,135 +106,153 @@ class _KanbanColumnWidgetState extends ConsumerState<KanbanColumnWidget> {
         children: [
           _buildHeader(context, filteredTasks.length, ref),
           Expanded(
-            child: DragTarget<Map<String, dynamic>>(
-              onWillAccept: (data) {
-                setState(() => _isHighlighted = true);
-                return true;
-              },
-              onLeave: (data) {
-                setState(() => _isHighlighted = false);
-                ref
-                    .read(kanbanBoardProvider.notifier)
-                    .updateHoverPosition(null, null);
-              },
-              onMove: (details) {
-                _handleDragAutoScroll(details);
-                // If the list is empty, index is 0
-                if (filteredTasks.isEmpty) {
-                  ref
-                      .read(kanbanBoardProvider.notifier)
-                      .updateHoverPosition(widget.column.id, 0);
+            child: Listener(
+              onPointerMove: (event) {
+                // Convert global pointer position to local for this column
+                final RenderBox? renderBox =
+                    context.findRenderObject() as RenderBox?;
+                if (renderBox != null) {
+                  final localPos = renderBox.globalToLocal(event.position);
+                  _currentPointerY = localPos.dy;
+                }
+
+                if (boardState.isDragging) {
+                  if (_scrollTimer == null) _startAutoScroll();
                 } else {
-                  // Default to last index if we're moving over the column container
-                  // and not specifically over a task target.
-                  // This makes it easier to drop at the end of the list.
-                  if (boardState.hoverColumnId != widget.column.id ||
-                      boardState.hoverIndex == null) {
-                    ref
-                        .read(kanbanBoardProvider.notifier)
-                        .updateHoverPosition(
-                          widget.column.id,
-                          filteredTasks.length,
-                        );
-                  }
+                  _stopAutoScroll();
                 }
               },
-              onAccept: (data) {
-                setState(() => _isHighlighted = false);
-                final taskId = data['taskId'] as String;
-                final fromColumnId = data['columnId'] as String;
+              onPointerUp: (_) => _stopAutoScroll(),
+              onPointerCancel: (_) => _stopAutoScroll(),
+              child: DragTarget<Map<String, dynamic>>(
+                onWillAccept: (data) {
+                  setState(() => _isHighlighted = true);
+                  return true;
+                },
+                onLeave: (data) {
+                  setState(() => _isHighlighted = false);
+                  ref
+                      .read(kanbanBoardProvider.notifier)
+                      .updateHoverPosition(null, null);
+                },
+                onMove: (details) {
+                  // If the list is empty, index is 0
+                  if (filteredTasks.isEmpty) {
+                    ref
+                        .read(kanbanBoardProvider.notifier)
+                        .updateHoverPosition(widget.column.id, 0);
+                  } else {
+                    // Default to last index if we're moving over the column container
+                    // and not specifically over a task target.
+                    // This makes it easier to drop at the end of the list.
+                    if (boardState.hoverColumnId != widget.column.id ||
+                        boardState.hoverIndex == null) {
+                      ref
+                          .read(kanbanBoardProvider.notifier)
+                          .updateHoverPosition(
+                            widget.column.id,
+                            filteredTasks.length,
+                          );
+                    }
+                  }
+                },
+                onAccept: (data) {
+                  setState(() => _isHighlighted = false);
+                  final taskId = data['taskId'] as String;
+                  final fromColumnId = data['columnId'] as String;
 
-                // Read the latest state from provider to get the most accurate hover index
-                final latestState = ref.read(kanbanBoardProvider);
-                final dropIndex =
-                    latestState.hoverIndex ?? filteredTasks.length;
+                  // Read the latest state from provider to get the most accurate hover index
+                  final latestState = ref.read(kanbanBoardProvider);
+                  final dropIndex =
+                      latestState.hoverIndex ?? filteredTasks.length;
 
-                ref
-                    .read(kanbanBoardProvider.notifier)
-                    .moveTask(
-                      taskId,
-                      fromColumnId,
-                      widget.column.id,
-                      dropIndex,
-                    );
-                widget.config.onTaskMoved?.call(
-                  widget.column.tasks.firstWhere((t) => t.id == taskId),
-                  fromColumnId,
-                  widget.column.id,
-                );
-                ref
-                    .read(kanbanBoardProvider.notifier)
-                    .updateHoverPosition(null, null);
-              },
-              builder: (context, candidateData, rejectedData) {
-                return ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount:
-                      filteredTasks.length +
-                      (widget.column.hasMore ? 1 : 0) +
-                      (isCurrentColumnHovered ? 1 : 0) +
-                      1, // Extra target at bottom
-                  itemBuilder: (context, index) {
-                    // 1. Extra transparent target at the bottom for easy dropping at end
-                    if (index ==
+                  ref
+                      .read(kanbanBoardProvider.notifier)
+                      .moveTask(
+                        taskId,
+                        fromColumnId,
+                        widget.column.id,
+                        dropIndex,
+                      );
+                  widget.config.onTaskMoved?.call(
+                    widget.column.tasks.firstWhere((t) => t.id == taskId),
+                    fromColumnId,
+                    widget.column.id,
+                  );
+                  ref
+                      .read(kanbanBoardProvider.notifier)
+                      .updateHoverPosition(null, null);
+                },
+                builder: (context, candidateData, rejectedData) {
+                  return ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount:
                         filteredTasks.length +
-                            (widget.column.hasMore ? 1 : 0) +
-                            (isCurrentColumnHovered ? 1 : 0)) {
-                      return DragTarget<Map<String, dynamic>>(
-                        onWillAccept: (data) {
-                          ref
-                              .read(kanbanBoardProvider.notifier)
-                              .updateHoverPosition(
-                                widget.column.id,
-                                filteredTasks.length,
-                              );
-                          return true;
-                        },
-                        builder: (context, _, __) =>
-                            const SizedBox(height: 100),
+                        (widget.column.hasMore ? 1 : 0) +
+                        (isCurrentColumnHovered ? 1 : 0) +
+                        1, // Extra target at bottom
+                    itemBuilder: (context, index) {
+                      // 1. Extra transparent target at the bottom for easy dropping at end
+                      if (index ==
+                          filteredTasks.length +
+                              (widget.column.hasMore ? 1 : 0) +
+                              (isCurrentColumnHovered ? 1 : 0)) {
+                        return DragTarget<Map<String, dynamic>>(
+                          onWillAccept: (data) {
+                            ref
+                                .read(kanbanBoardProvider.notifier)
+                                .updateHoverPosition(
+                                  widget.column.id,
+                                  filteredTasks.length,
+                                );
+                            return true;
+                          },
+                          builder: (context, _, __) =>
+                              const SizedBox(height: 100),
+                        );
+                      }
+
+                      // Check for placeholder
+                      if (isCurrentColumnHovered &&
+                          index == boardState.hoverIndex) {
+                        return _buildPlaceholder();
+                      }
+
+                      // Adjust index for placeholder
+                      int taskIndex = index;
+                      if (isCurrentColumnHovered &&
+                          boardState.hoverIndex != null &&
+                          index > boardState.hoverIndex!) {
+                        taskIndex--;
+                      }
+
+                      if (taskIndex == filteredTasks.length) {
+                        return DragTarget<Map<String, dynamic>>(
+                          onWillAccept: (data) {
+                            ref
+                                .read(kanbanBoardProvider.notifier)
+                                .updateHoverPosition(
+                                  widget.column.id,
+                                  filteredTasks.length,
+                                );
+                            return true;
+                          },
+                          builder: (context, _, __) => _buildLoadMore(ref),
+                        );
+                      }
+
+                      final task = filteredTasks[taskIndex];
+                      return _buildDraggableTask(
+                        task,
+                        taskIndex,
+                        ref,
+                        isCurrentColumnHovered,
                       );
-                    }
-
-                    // Check for placeholder
-                    if (isCurrentColumnHovered &&
-                        index == boardState.hoverIndex) {
-                      return _buildPlaceholder();
-                    }
-
-                    // Adjust index for placeholder
-                    int taskIndex = index;
-                    if (isCurrentColumnHovered &&
-                        boardState.hoverIndex != null &&
-                        index > boardState.hoverIndex!) {
-                      taskIndex--;
-                    }
-
-                    if (taskIndex == filteredTasks.length) {
-                      return DragTarget<Map<String, dynamic>>(
-                        onWillAccept: (data) {
-                          ref
-                              .read(kanbanBoardProvider.notifier)
-                              .updateHoverPosition(
-                                widget.column.id,
-                                filteredTasks.length,
-                              );
-                          return true;
-                        },
-                        builder: (context, _, __) => _buildLoadMore(ref),
-                      );
-                    }
-
-                    final task = filteredTasks[taskIndex];
-                    return _buildDraggableTask(
-                      task,
-                      taskIndex,
-                      ref,
-                      isCurrentColumnHovered,
-                    );
-                  },
-                );
-              },
+                    },
+                  );
+                },
+              ),
             ),
           ),
         ],
