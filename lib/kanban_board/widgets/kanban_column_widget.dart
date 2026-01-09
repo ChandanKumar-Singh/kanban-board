@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/models.dart';
@@ -550,73 +551,96 @@ class _KanbanColumnWidgetState extends ConsumerState<KanbanColumnWidget> {
             );
             final isThisTaskDragging = draggingTaskId == task.id;
 
-            return Draggable<Map<String, dynamic>>(
-              key: ValueKey('drag_${task.id}'),
-              data: {'taskId': task.id, 'columnId': widget.column.id},
-              onDragStarted: () {
-                HapticFeedback.lightImpact();
-                watchRef
-                    .read(kanbanBoardProvider.notifier)
-                    .setDragging(
-                      true,
-                      taskId: task.id,
-                      columnId: widget.column.id,
-                    );
-              },
-              onDragEnd: (_) => parentRef
+            final dragKey = ValueKey('drag_${task.id}');
+            final dragData = {'taskId': task.id, 'columnId': widget.column.id};
+
+            onDragStarted() {
+              HapticFeedback.lightImpact();
+              watchRef
                   .read(kanbanBoardProvider.notifier)
-                  .setDragging(false),
-              onDraggableCanceled: (_, __) => parentRef
-                  .read(kanbanBoardProvider.notifier)
-                  .setDragging(false),
-              onDragCompleted: () => parentRef
-                  .read(kanbanBoardProvider.notifier)
-                  .setDragging(false),
-              feedback: Transform.rotate(
-                angle: 0.1,
-                child: Transform.scale(
-                  scale: 1 * 0.9,
-                  child: SizedBox(
-                    width: widget.config.columnWidth - 20,
-                    child: KanbanTaskCard(task: task, isDragging: true),
-                  ),
+                  .setDragging(
+                    true,
+                    taskId: task.id,
+                    columnId: widget.column.id,
+                  );
+            }
+
+            onDragEnd(details) =>
+                parentRef.read(kanbanBoardProvider.notifier).setDragging(false);
+
+            final feedback = Transform.rotate(
+              angle: 0.1,
+              child: Transform.scale(
+                scale: 1 * 0.9,
+                child: SizedBox(
+                  width: widget.config.columnWidth - 20,
+                  child: KanbanTaskCard(task: task, isDragging: true),
                 ),
               ),
-              childWhenDragging: const SizedBox.shrink(),
-              child: isThisTaskDragging
-                  ? const SizedBox.shrink()
-                  : KanbanTaskCard(
-                      task: task,
-                      onTap: () {
-                        final screenWidth = MediaQuery.of(context).size.width;
-                        if (screenWidth > 900) {
-                          watchRef
-                              .read(kanbanBoardProvider.notifier)
-                              .selectTask(task, widget.column.id);
-                        } else {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (context) => Container(
-                              height: MediaQuery.of(context).size.height * 0.85,
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(20),
-                                ),
-                              ),
-                              clipBehavior: Clip.antiAlias,
-                              child: TaskDetailSheet(
-                                task: task,
-                                columnId: widget.column.id,
+            );
+
+            final childWhenDragging = const SizedBox.shrink();
+
+            final child = isThisTaskDragging
+                ? const SizedBox.shrink()
+                : KanbanTaskCard(
+                    task: task,
+                    onTap: () {
+                      final screenWidth = MediaQuery.of(context).size.width;
+                      if (screenWidth > 900) {
+                        watchRef
+                            .read(kanbanBoardProvider.notifier)
+                            .selectTask(task, widget.column.id);
+                      } else {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => Container(
+                            height: MediaQuery.of(context).size.height * 0.85,
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(20),
                               ),
                             ),
-                          );
-                        }
-                      },
-                    ),
-            );
+                            clipBehavior: Clip.antiAlias,
+                            child: TaskDetailSheet(
+                              task: task,
+                              columnId: widget.column.id,
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  );
+
+            if (kIsWeb) {
+              return Draggable<Map<String, dynamic>>(
+                key: dragKey,
+                data: dragData,
+                onDragStarted: onDragStarted,
+                onDragEnd: onDragEnd,
+                onDraggableCanceled: (_, __) => onDragEnd(null),
+                onDragCompleted: () => onDragEnd(null),
+                feedback: feedback,
+                childWhenDragging: childWhenDragging,
+                child: child,
+              );
+            } else {
+              return LongPressDraggable<Map<String, dynamic>>(
+                key: dragKey,
+                data: dragData,
+                onDragStarted: onDragStarted,
+                onDragEnd: onDragEnd,
+                onDraggableCanceled: (_, __) => onDragEnd(null),
+                onDragCompleted: () => onDragEnd(null),
+                feedback: feedback,
+                childWhenDragging: childWhenDragging,
+                delay: const Duration(milliseconds: 200),
+                child: child,
+              );
+            }
           },
         );
       },
