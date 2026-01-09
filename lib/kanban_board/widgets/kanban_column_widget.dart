@@ -99,7 +99,7 @@ class _KanbanColumnWidgetState extends ConsumerState<KanbanColumnWidget> {
             : Colors.grey[100],
         borderRadius: widget.config.borderRadius,
         border: _isHighlighted
-            ? Border.all(color: Colors.blue, width: 2)
+            ? Border.all(color: Colors.blue, width: 1)
             : null,
       ),
       child: Column(
@@ -115,7 +115,7 @@ class _KanbanColumnWidgetState extends ConsumerState<KanbanColumnWidget> {
                   final localPos = renderBox.globalToLocal(event.position);
                   _currentPointerY = localPos.dy;
                 }
-
+      
                 if (boardState.isDragging) {
                   if (_scrollTimer == null) _startAutoScroll();
                 } else {
@@ -160,12 +160,12 @@ class _KanbanColumnWidgetState extends ConsumerState<KanbanColumnWidget> {
                   setState(() => _isHighlighted = false);
                   final taskId = data['taskId'] as String;
                   final fromColumnId = data['columnId'] as String;
-
+      
                   // Read the latest state from provider to get the most accurate hover index
                   final latestState = ref.read(kanbanBoardProvider);
                   final dropIndex =
                       latestState.hoverIndex ?? filteredTasks.length;
-
+      
                   ref
                       .read(kanbanBoardProvider.notifier)
                       .moveTask(
@@ -212,13 +212,13 @@ class _KanbanColumnWidgetState extends ConsumerState<KanbanColumnWidget> {
                               const SizedBox(height: 100),
                         );
                       }
-
+      
                       // Check for placeholder
                       if (isCurrentColumnHovered &&
                           index == boardState.hoverIndex) {
                         return _buildPlaceholder();
                       }
-
+      
                       // Adjust index for placeholder
                       int taskIndex = index;
                       if (isCurrentColumnHovered &&
@@ -226,7 +226,7 @@ class _KanbanColumnWidgetState extends ConsumerState<KanbanColumnWidget> {
                           index > boardState.hoverIndex!) {
                         taskIndex--;
                       }
-
+      
                       if (taskIndex == filteredTasks.length) {
                         return DragTarget<Map<String, dynamic>>(
                           onWillAccept: (data) {
@@ -241,7 +241,7 @@ class _KanbanColumnWidgetState extends ConsumerState<KanbanColumnWidget> {
                           builder: (context, _, __) => _buildLoadMore(ref),
                         );
                       }
-
+      
                       final task = filteredTasks[taskIndex];
                       return _buildDraggableTask(
                         task,
