@@ -17,6 +17,10 @@ class KanbanBoardState {
   final String? currentBoardId;
   final bool isBoardSwitching;
 
+  final KanbanBoardData? selectedTaskBoard;
+  final KanbanTask? selectedTask;
+  final String? selectedTaskColumnId;
+
   KanbanBoardState({
     this.columns = const [],
     this.isInitialLoading = false,
@@ -29,6 +33,9 @@ class KanbanBoardState {
     this.availableBoards = const [],
     this.currentBoardId,
     this.isBoardSwitching = false,
+    this.selectedTask,
+    this.selectedTaskColumnId,
+    this.selectedTaskBoard,
   });
 
   KanbanBoardState copyWith({
@@ -45,6 +52,9 @@ class KanbanBoardState {
     bool? isBoardSwitching,
     bool resetDragging = false,
     bool resetHover = false,
+    KanbanTask? selectedTask,
+    String? selectedTaskColumnId,
+    bool resetSelection = false,
   }) {
     return KanbanBoardState(
       columns: columns ?? this.columns,
@@ -62,6 +72,10 @@ class KanbanBoardState {
       availableBoards: availableBoards ?? this.availableBoards,
       currentBoardId: currentBoardId ?? this.currentBoardId,
       isBoardSwitching: isBoardSwitching ?? this.isBoardSwitching,
+      selectedTask: resetSelection ? null : (selectedTask ?? this.selectedTask),
+      selectedTaskColumnId: resetSelection
+          ? null
+          : (selectedTaskColumnId ?? this.selectedTaskColumnId),
     );
   }
 }
@@ -92,6 +106,14 @@ class KanbanBoardNotifier extends StateNotifier<KanbanBoardState> {
       columns: boardData.columns,
       isInitialLoading: false,
       isBoardSwitching: false,
+    );
+  }
+
+  void selectTask(KanbanTask? task, String? columnId) {
+    state = state.copyWith(
+      selectedTask: task,
+      selectedTaskColumnId: columnId,
+      resetSelection: task == null,
     );
   }
 

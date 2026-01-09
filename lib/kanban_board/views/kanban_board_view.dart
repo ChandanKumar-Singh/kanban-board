@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/kanban_provider.dart';
 import '../models/models.dart';
 import '../widgets/kanban_column_widget.dart';
+import '../widgets/task_detail_sheet.dart';
 
 class KanbanBoardView extends ConsumerStatefulWidget {
   final KanbanConfig config;
@@ -143,47 +144,67 @@ class _KanbanBoardViewState extends ConsumerState<KanbanBoardView> {
           ),
         ],
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFF9FAFC), Color(0xFFE8F1FF)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: boardState.isBoardSwitching || boardState.isInitialLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Listener(
-                onPointerMove: (event) {
-                  if (boardState.isDragging) {
-                    _currentPointerX = event.position.dx;
-                    if (_scrollTimer == null) _startAutoScroll();
-                  } else {
-                    _stopAutoScroll();
-                  }
-                },
-                onPointerUp: (_) => _stopAutoScroll(),
-                onPointerCancel: (_) => _stopAutoScroll(),
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ...boardState.columns.map((column) {
-                        return KanbanColumnWidget(
-                          key: ValueKey(column.id),
-                          column: column,
-                          config: widget.config,
-                        );
-                      }),
-                      const SizedBox(
-                        width: 300,
-                      ), // Space at end for "Add Column" drop zone or just breathing room
-                    ],
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFFF9FAFC), Color(0xFFE8F1FF)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+            child: boardState.isBoardSwitching || boardState.isInitialLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Listener(
+                    onPointerMove: (event) {
+                      if (boardState.isDragging) {
+                        _currentPointerX = event.position.dx;
+                        if (_scrollTimer == null) _startAutoScroll();
+                      } else {
+                        _stopAutoScroll();
+                      }
+                    },
+                    onPointerUp: (_) => _stopAutoScroll(),
+                    onPointerCancel: (_) => _stopAutoScroll(),
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ...boardState.columns.map((column) {
+                            return KanbanColumnWidget(
+                              key: ValueKey(column.id),
+                              column: column,
+                              config: widget.config,
+                            );
+                          }),
+                          const SizedBox(width: 300),
+                        ],
+                      ),
+                    ),
                   ),
+          ),
+
+          // Responsive Sidebar for Desktop
+          if (boardState.selectedTask != null &&
+              MediaQuery.of(context).size.width > 900)
+            Positioned(
+              top: 0,
+              bottom: 0,
+              right: 0,
+              width: 400,
+              child: Material(
+                elevation: 16,
+                shadowColor: Colors.black26,
+                child: TaskDetailSheet(
+                  task: boardState.selectedTask!,
+                  columnId: boardState.selectedTaskColumnId!,
                 ),
               ),
+            ),
+        ],
       ),
     );
   }

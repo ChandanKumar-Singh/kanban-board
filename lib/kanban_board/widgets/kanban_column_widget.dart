@@ -6,7 +6,7 @@ import '../models/models.dart';
 import '../providers/kanban_provider.dart';
 import 'kanban_card_widget.dart';
 import 'skeleton_widgets.dart';
-import 'task_detail_dialog.dart';
+import 'task_detail_sheet.dart';
 
 class KanbanColumnWidget extends ConsumerStatefulWidget {
   final KanbanColumn column;
@@ -588,17 +588,32 @@ class _KanbanColumnWidgetState extends ConsumerState<KanbanColumnWidget> {
                   : KanbanTaskCard(
                       task: task,
                       onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => TaskDetailDialog(
-                            task: task,
-                            onSave: (updatedTask) {
-                              watchRef
-                                  .read(kanbanBoardProvider.notifier)
-                                  .updateTask(widget.column.id, updatedTask);
-                            },
-                          ),
-                        );
+                        final screenWidth = MediaQuery.of(context).size.width;
+                        if (screenWidth > 900) {
+                          watchRef
+                              .read(kanbanBoardProvider.notifier)
+                              .selectTask(task, widget.column.id);
+                        } else {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => Container(
+                              height: MediaQuery.of(context).size.height * 0.85,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(20),
+                                ),
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: TaskDetailSheet(
+                                task: task,
+                                columnId: widget.column.id,
+                              ),
+                            ),
+                          );
+                        }
                       },
                     ),
             );
