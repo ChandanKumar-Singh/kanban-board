@@ -180,10 +180,13 @@ class KanbanBoardNotifier extends StateNotifier<KanbanBoardState> {
       (prev, col) => [...prev, ...col.tasks],
     );
     final moreTasks = [
-      KanbanTask(
-        title: 'More Task ${tasks.length + 1}',
-        description: 'Dynamically loaded',
-        dueDate: DateTime.now().add(const Duration(days: 3)),
+      ...List.generate(
+        4,
+        (i) => KanbanTask(
+          title: 'More Task ${tasks.length + 1 + i}',
+          description: 'Dynamically loaded',
+          dueDate: DateTime.now().add(const Duration(days: 3)),
+        ),
       ),
     ];
 
