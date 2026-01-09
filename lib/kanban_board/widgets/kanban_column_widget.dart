@@ -575,7 +575,7 @@ class _KanbanColumnWidgetState extends ConsumerState<KanbanColumnWidget> {
               feedback: Transform.rotate(
                 angle: 0.1,
                 child: Transform.scale(
-                  scale: 1.05 * 0.8,
+                  scale: 1 * 0.9,
                   child: SizedBox(
                     width: widget.config.columnWidth - 20,
                     child: KanbanTaskCard(task: task, isDragging: true),
