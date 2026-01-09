@@ -175,9 +175,13 @@ class KanbanBoardNotifier extends StateNotifier<KanbanBoardState> {
     await Future.delayed(const Duration(seconds: 1));
 
     final column = state.columns[columnIndex];
+    final tasks = state.columns.fold(
+      <KanbanTask>[],
+      (prev, col) => [...prev, ...col.tasks],
+    );
     final moreTasks = [
       KanbanTask(
-        title: 'More Task ${column.tasks.length + 1}',
+        title: 'More Task ${tasks.length + 1}',
         description: 'Dynamically loaded',
         dueDate: DateTime.now().add(const Duration(days: 3)),
       ),

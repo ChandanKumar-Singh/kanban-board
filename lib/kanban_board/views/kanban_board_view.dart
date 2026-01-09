@@ -8,8 +8,7 @@ import '../widgets/kanban_column_widget.dart';
 class KanbanBoardView extends ConsumerStatefulWidget {
   final KanbanConfig config;
 
-  const KanbanBoardView({Key? key, this.config = const KanbanConfig()})
-    : super(key: key);
+  const KanbanBoardView({super.key, this.config = const KanbanConfig()});
 
   @override
   ConsumerState<KanbanBoardView> createState() => _KanbanBoardViewState();
@@ -177,7 +176,7 @@ class _KanbanBoardViewState extends ConsumerState<KanbanBoardView> {
                           column: column,
                           config: widget.config,
                         );
-                      }).toList(),
+                      }),
                       const SizedBox(
                         width: 300,
                       ), // Space at end for "Add Column" drop zone or just breathing room
