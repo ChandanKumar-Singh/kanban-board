@@ -12,6 +12,19 @@
         "--web-hostname",
         "0.0.0.0"
       ]
-    }
+    },
+    {
+      "name": "Flutter Web Release",
+      "type": "dart",
+      "flutterMode": "release",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "args": [
+        "-d",
+        "web-server",
+        "--web-hostname",
+        "0.0.0.0"
+      ]
+    },
   ]
 }
