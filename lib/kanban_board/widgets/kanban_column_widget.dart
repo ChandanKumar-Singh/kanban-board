@@ -550,7 +550,7 @@ class _KanbanColumnWidgetState extends ConsumerState<KanbanColumnWidget> {
             );
             final isThisTaskDragging = draggingTaskId == task.id;
 
-            return LongPressDraggable<Map<String, dynamic>>(
+            return Draggable<Map<String, dynamic>>(
               key: ValueKey('drag_${task.id}'),
               data: {'taskId': task.id, 'columnId': widget.column.id},
               onDragStarted: () {
