@@ -191,32 +191,109 @@ class _KanbanBoardViewState extends ConsumerState<KanbanBoardView> {
 
   void _showAddColumnDialog(BuildContext context, WidgetRef ref) {
     final controller = TextEditingController();
+    int selectedColor = 0xFF9E9E9E; // Default grey
+
+    final List<int> presetColors = [
+      0xFF9E9E9E, // Grey
+      0xFFF44336, // Red
+      0xFFE91E63, // Pink
+      0xFF9C27B0, // Purple
+      0xFF673AB7, // Deep Purple
+      0xFF3F51B5, // Indigo
+      0xFF2196F3, // Blue
+      0xFF03A9F4, // Light Blue
+      0xFF00BCD4, // Cyan
+      0xFF009688, // Teal
+      0xFF4CAF50, // Green
+      0xFF8BC34A, // Light Green
+      0xFFFFEB3B, // Yellow
+      0xFFFFC107, // Amber
+      0xFFFF9800, // Orange
+      0xFFFF5722, // Deep Orange
+      0xFF795548, // Brown
+      0xFF607D8B, // Blue Grey
+    ];
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add New Column'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(hintText: 'Column Title'),
-          autofocus: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Add New Column'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: controller,
+                decoration: const InputDecoration(
+                  hintText: 'Column Title',
+                  border: OutlineInputBorder(),
+                ),
+                autofocus: true,
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Color Code',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: presetColors.map((color) {
+                  final isSelected = selectedColor == color;
+                  return GestureDetector(
+                    onTap: () => setState(() => selectedColor = color),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Color(color),
+                        shape: BoxShape.circle,
+                        border: isSelected
+                            ? Border.all(color: Colors.black, width: 2)
+                            : Border.all(color: Colors.grey.withOpacity(0.3)),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: isSelected
+                          ? const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 18,
+                            )
+                          : null,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (controller.text.isNotEmpty) {
+                  ref
+                      .read(kanbanBoardProvider.notifier)
+                      .addColumn(controller.text, selectedColor);
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Add'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (controller.text.isNotEmpty) {
-                ref
-                    .read(kanbanBoardProvider.notifier)
-                    .addColumn(controller.text, 0xFF9E9E9E);
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Add'),
-          ),
-        ],
       ),
     );
   }

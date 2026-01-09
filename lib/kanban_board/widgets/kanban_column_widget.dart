@@ -344,48 +344,163 @@ class _KanbanColumnWidgetState extends ConsumerState<KanbanColumnWidget> {
   void _showAddTaskDialog(BuildContext context, WidgetRef ref) {
     final titleController = TextEditingController();
     final descController = TextEditingController();
+    final assigneeController = TextEditingController();
+    final tagsController = TextEditingController();
+    TaskPriority selectedPriority = TaskPriority.medium;
+    DateTime selectedDate = DateTime.now().add(const Duration(days: 1));
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Add Task to ${widget.column.title}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: titleController,
-              decoration: const InputDecoration(hintText: 'Task Title'),
-              autofocus: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text('Add Task to ${widget.column.title}'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(
+                    labelText: 'Task Title',
+                    border: OutlineInputBorder(),
+                  ),
+                  autofocus: true,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: descController,
+                  decoration: const InputDecoration(
+                    labelText: 'Description',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Priority',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          DropdownButton<TaskPriority>(
+                            value: selectedPriority,
+                            isExpanded: true,
+                            items: TaskPriority.values.map((p) {
+                              return DropdownMenuItem(
+                                value: p,
+                                child: Text(p.toString().split('.').last),
+                              );
+                            }).toList(),
+                            onChanged: (val) {
+                              if (val != null)
+                                setState(() => selectedPriority = val);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Due Date',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          TextButton.icon(
+                            icon: const Icon(Icons.calendar_today, size: 16),
+                            label: Text(
+                              "${selectedDate.day}/${selectedDate.month}",
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                            onPressed: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: selectedDate,
+                                firstDate: DateTime.now(),
+                                lastDate: DateTime.now().add(
+                                  const Duration(days: 365),
+                                ),
+                              );
+                              if (picked != null) {
+                                setState(() => selectedDate = picked);
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: assigneeController,
+                  decoration: const InputDecoration(
+                    labelText: 'Assignee',
+                    prefixIcon: Icon(Icons.person_outline),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: tagsController,
+                  decoration: const InputDecoration(
+                    labelText: 'Tags (comma separated)',
+                    prefixIcon: Icon(Icons.label_outline),
+                    hintText: 'e.g. Design, Urgent',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: descController,
-              decoration: const InputDecoration(hintText: 'Description'),
-              maxLines: 3,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (titleController.text.isNotEmpty) {
+                  final tags = tagsController.text
+                      .split(',')
+                      .map((e) => e.trim())
+                      .where((e) => e.isNotEmpty)
+                      .toList();
+
+                  final newTask = KanbanTask(
+                    title: titleController.text,
+                    description: descController.text,
+                    dueDate: selectedDate,
+                    priority: selectedPriority,
+                    assignee: assigneeController.text.isNotEmpty
+                        ? assigneeController.text
+                        : 'Unassigned',
+                    tags: tags,
+                  );
+
+                  ref
+                      .read(kanbanBoardProvider.notifier)
+                      .addTask(widget.column.id, newTask);
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Add'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (titleController.text.isNotEmpty) {
-                final newTask = KanbanTask(
-                  title: titleController.text,
-                  description: descController.text,
-                  dueDate: DateTime.now().add(const Duration(days: 1)),
-                );
-                ref
-                    .read(kanbanBoardProvider.notifier)
-                    .addTask(widget.column.id, newTask);
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Add'),
-          ),
-        ],
       ),
     );
   }
