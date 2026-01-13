@@ -97,12 +97,14 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: List.generate(stages.length, (index) {
           final isActive = index <= currentStage;
           final isCurrent = index == currentStage;
 
           return Expanded(
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Row(
                   children: [
