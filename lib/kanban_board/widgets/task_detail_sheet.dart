@@ -21,7 +21,7 @@ class _TaskDetailSheetState extends ConsumerState<TaskDetailSheet> {
   late TaskPriority _priority;
   late DateTime _dueDate;
 
-    @override
+  @override
   void setState(VoidCallback fn) {
     if (mounted) super.setState(fn);
   }

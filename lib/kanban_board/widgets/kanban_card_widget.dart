@@ -16,10 +16,13 @@ class KanbanTaskCard<T extends KanbanTask> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (props.builder != null) {
+      return props.builder!(context, task, isDragging);
+    }
+
     if (task is! DefaultKanbanTask) {
       return Material(
         color: Colors.transparent,
-
         child: GestureDetector(
           onTap: onTap,
           child: Container(

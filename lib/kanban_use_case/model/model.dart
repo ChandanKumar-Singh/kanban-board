@@ -4,7 +4,7 @@ part of '../index.dart';
 class CustomKanbanTask extends KanbanTask {
   final String title;
   final String subtitle;
-  final int priority; // 1-3
+  final int priority;
   final List<String> labels;
 
   CustomKanbanTask({
@@ -13,7 +13,7 @@ class CustomKanbanTask extends KanbanTask {
     this.subtitle = '',
     this.priority = 1,
     this.labels = const [],
-  }) : super(id: id ?? Uuid().v4());
+  }) : super(id: id ?? const Uuid().v4());
 
   CustomKanbanTask copyWith({
     String? title,

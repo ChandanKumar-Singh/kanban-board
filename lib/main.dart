@@ -1,61 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kanban_board/kanban_board/index.dart';
-import 'package:kanban_board/kanban_use_case/index.dart';
+import 'home_screen.dart';
 
 void main() {
-  runApp(ProviderScope(child: const MyApp()));
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Enterprise Kanban',
       debugShowCheckedModeBanner: false,
+      title: 'Enterprise Kanban',
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6366F1), // Modern Indigo
-          primary: const Color(0xFF6366F1),
-          secondary: const Color(0xFF0F172A), // Slate
-          surface: Colors.white,
+          seedColor: const Color(0xFF4F46E5),
+          primary: const Color(0xFF4F46E5),
+          secondary: const Color(0xFF1E293B),
           background: const Color(0xFFF8FAFC),
+          surface: Colors.white,
+          error: const Color(0xFFEF4444),
         ),
         scaffoldBackgroundColor: const Color(0xFFF8FAFC),
-        textTheme: const TextTheme(
-          headlineMedium: TextStyle(
-            color: Color(0xFF0F172A),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: false,
+          titleTextStyle: TextStyle(
+            color: Color(0xFF1E293B),
+            fontSize: 18,
             fontWeight: FontWeight.w800,
-            letterSpacing: -0.5,
           ),
-          bodyLarge: TextStyle(color: Color(0xFF334155)),
-          bodyMedium: TextStyle(color: Color(0xFF64748B)),
+          iconTheme: IconThemeData(color: Color(0xFF1E293B)),
         ),
         cardTheme: CardThemeData(
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFFE2E8F0)),
           ),
           color: Colors.white,
         ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
-          foregroundColor: Color(0xFF0F172A),
-          elevation: 0,
-          centerTitle: false,
-          titleTextStyle: TextStyle(
-            fontSize: 20,
+        textTheme: const TextTheme(
+          titleLarge: TextStyle(
+            color: Color(0xFF1E293B),
             fontWeight: FontWeight.w800,
-            color: Color(0xFF0F172A),
-            letterSpacing: -0.5,
           ),
+          bodyLarge: TextStyle(color: Color(0xFF334155)),
+          bodyMedium: TextStyle(color: Color(0xFF64748B)),
         ),
       ),
-      home: const KanbanScreen(),
+      home: const HomeScreen(),
     );
   }
 }

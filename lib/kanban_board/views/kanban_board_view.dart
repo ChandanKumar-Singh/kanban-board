@@ -85,6 +85,7 @@ class _KanbanBoardViewState<T extends KanbanTask>
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
         title: Row(
           children: [
             if (boardState.availableBoards.length > 1)

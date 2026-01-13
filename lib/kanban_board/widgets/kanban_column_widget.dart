@@ -158,11 +158,9 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
       filteredTasks = widget.column.tasks.where((task) {
         if (searchQuery.isEmpty) return true;
         if (task is DefaultKanbanTask) {
-          final t = task as DefaultKanbanTask;
-          return t.title.toLowerCase().contains(searchQuery) ||
-              t.description.toLowerCase().contains(searchQuery) ||
-              t.assignee.toLowerCase().contains(searchQuery) ||
-              t.tags.any((tag) => tag.toLowerCase().contains(searchQuery));
+          return task.title.toLowerCase().contains(searchQuery) ||
+              task.description.toLowerCase().contains(searchQuery) ||
+              task.tags.any((tag) => tag.toLowerCase().contains(searchQuery));
         }
         // Fallback for custom tasks if no onFilter is provided
         return task.id.toLowerCase().contains(searchQuery);
@@ -631,10 +629,10 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
                     description: descController.text,
                     dueDate: selectedDate,
                     priority: selectedPriority,
+                    tags: tags,
                     assignee: assigneeController.text.isNotEmpty
                         ? assigneeController.text
                         : 'Unassigned',
-                    tags: tags,
                   );
 
                   ref

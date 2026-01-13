@@ -9,9 +9,7 @@ class KanbanTask {
   KanbanTask({required this.id});
 }
 
-class DefaultKanbanTask implements KanbanTask {
-  @override
-  final String id;
+class DefaultKanbanTask extends KanbanTask {
   final String title;
   final String description;
   final String assignee;
@@ -31,7 +29,7 @@ class DefaultKanbanTask implements KanbanTask {
     this.statusIcon,
     this.tags = const [],
     this.assigneeAvatar,
-  }) : id = id ?? _uuid.v4();
+  }) : super(id: id ?? _uuid.v4());
 
   DefaultKanbanTask copyWith({
     String? title,
