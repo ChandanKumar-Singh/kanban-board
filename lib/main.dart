@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kanban_board/kanban_board/index.dart';
-import 'package:kanban_board/kanban_board/use_case/index.dart';
+import 'package:kanban_board/kanban_use_case/index.dart';
 
 void main() {
   runApp(ProviderScope(child: const MyApp()));
