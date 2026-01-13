@@ -1,7 +1,7 @@
 part of '../index.dart';
 
 class KanbanCardSkeleton extends StatelessWidget {
-  const KanbanCardSkeleton({Key? key}) : super(key: key);
+  const KanbanCardSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {

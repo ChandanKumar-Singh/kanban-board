@@ -4,8 +4,7 @@ class TaskDetailDialog extends StatefulWidget {
   final KanbanTask task;
   final Function(KanbanTask) onSave;
 
-  const TaskDetailDialog({Key? key, required this.task, required this.onSave})
-    : super(key: key);
+  const TaskDetailDialog({super.key, required this.task, required this.onSave});
 
   @override
   State<TaskDetailDialog> createState() => _TaskDetailDialogState();
@@ -17,6 +16,10 @@ class _TaskDetailDialogState extends State<TaskDetailDialog> {
   late TextEditingController _assigneeController;
   late TaskPriority _priority;
 
+  @override
+  void setState(VoidCallback fn) {
+    if (mounted) super.setState(fn);
+  }
   @override
   void initState() {
     super.initState();

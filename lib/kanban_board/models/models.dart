@@ -115,6 +115,13 @@ class KanbanConfig<T extends KanbanTask> {
   final KanbanColumnHeaderBuilder<T>? columnHeaderBuilder;
   final KanbanFilterCallback<T>? onFilter;
 
+  // Interaction hooks
+  final Function(T)? onTaskTap;
+  final Function(String, T)? onTaskCreated;
+  final Function(String, String)? onTaskDeleted;
+  final Function(KanbanColumn<T>)? onColumnCreated;
+  final Function(String)? onColumnDeleted;
+
   const KanbanConfig({
     this.cardElevation = 2,
     this.columnWidth = 300,
@@ -125,5 +132,10 @@ class KanbanConfig<T extends KanbanTask> {
     this.cardBuilder,
     this.columnHeaderBuilder,
     this.onFilter,
+    this.onTaskTap,
+    this.onTaskCreated,
+    this.onTaskDeleted,
+    this.onColumnCreated,
+    this.onColumnDeleted,
   });
 }

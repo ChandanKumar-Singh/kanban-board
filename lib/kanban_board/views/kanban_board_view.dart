@@ -22,6 +22,11 @@ class _KanbanBoardViewState<T extends KanbanTask>
   double _currentPointerX = 0;
 
   @override
+  void setState(VoidCallback fn) {
+    if (mounted) super.setState(fn);
+  }
+
+  @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
@@ -82,7 +87,7 @@ class _KanbanBoardViewState<T extends KanbanTask>
         backgroundColor: Colors.white,
         title: Row(
           children: [
-            if (boardState.availableBoards.isNotEmpty)
+            if (boardState.availableBoards.length > 1)
               DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: boardState.currentBoardId,
@@ -318,12 +323,19 @@ class _KanbanBoardViewState<T extends KanbanTask>
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (controller.text.isNotEmpty) {
-                  ref
+                  await ref
                       .read(provider.notifier)
                       .addColumn(controller.text, selectedColor);
-                  Navigator.pop(context);
+
+                  // Notify config after adding
+                  final newState = ref.read(provider);
+                  if (newState.columns.isNotEmpty) {
+                    widget.config.onColumnCreated?.call(newState.columns.last);
+                  }
+
+                  if (context.mounted) Navigator.pop(context);
                 }
               },
               child: const Text('Add'),

@@ -26,6 +26,11 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
   double _currentPointerY = 0;
 
   @override
+  void setState(VoidCallback fn) {
+    if (mounted) super.setState(fn);
+  }
+
+  @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
@@ -562,6 +567,10 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
                   ref
                       .read(provider.notifier)
                       .addTask(widget.column.id, newTask as T);
+                  widget.config.onTaskCreated?.call(
+                    widget.column.id,
+                    newTask as T,
+                  );
                   Navigator.pop(context);
                 }
               },
@@ -621,10 +630,7 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
                   width: widget.config.columnWidth - 20,
                   child: widget.config.cardBuilder != null
                       ? widget.config.cardBuilder!(context, task, true)
-                      : KanbanTaskCard(
-                          task: task as DefaultKanbanTask,
-                          isDragging: true,
-                        ),
+                      : KanbanTaskCard(task: task, isDragging: true),
                 ),
               ),
             );
@@ -636,8 +642,12 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
                 : (widget.config.cardBuilder != null
                       ? widget.config.cardBuilder!(context, task, false)
                       : KanbanTaskCard(
-                          task: task as DefaultKanbanTask,
+                          task: task,
                           onTap: () {
+                            if (widget.config.onTaskTap != null) {
+                              widget.config.onTaskTap!(task);
+                              return;
+                            }
                             final screenWidth = MediaQuery.of(
                               context,
                             ).size.width;

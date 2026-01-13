@@ -15,26 +15,30 @@ class KanbanTaskCard<T extends KanbanTask> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (task is! DefaultKanbanTask) {
-      return GestureDetector(
-        onTap: onTap,
-        child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-            border: isDragging
-                ? Border.all(color: Colors.blue, width: 2)
-                : null,
+      return Material(
+        color: Colors.transparent,
+
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+              border: isDragging
+                  ? Border.all(color: Colors.blue, width: 2)
+                  : null,
+            ),
+            child: Text('Custom Task: ${task.id}'),
           ),
-          child: Text('Custom Task: ${task.id}'),
         ),
       );
     }
