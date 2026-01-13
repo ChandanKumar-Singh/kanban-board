@@ -59,19 +59,46 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  _buildLeadInfoCard(),
+                  FadeInLeft(
+                    duration: const Duration(milliseconds: 400),
+                    child: _buildLeadInfoCard(),
+                  ),
                   const SizedBox(height: 16),
-                  _buildAppointmentCard(),
+                  FadeInLeft(
+                    duration: const Duration(milliseconds: 400),
+                    delay: const Duration(milliseconds: 100),
+                    child: _buildAppointmentCard(),
+                  ),
                   const SizedBox(height: 16),
-                  _buildDoctorCard(),
+                  FadeInLeft(
+                    duration: const Duration(milliseconds: 400),
+                    delay: const Duration(milliseconds: 200),
+                    child: _buildDoctorCard(),
+                  ),
                   const SizedBox(height: 16),
-                  _buildTagsCard(),
+                  FadeInLeft(
+                    duration: const Duration(milliseconds: 400),
+                    delay: const Duration(milliseconds: 300),
+                    child: _buildTagsCard(),
+                  ),
                   const SizedBox(height: 16),
-                  _buildPaymentCard(),
+                  FadeInLeft(
+                    duration: const Duration(milliseconds: 400),
+                    delay: const Duration(milliseconds: 400),
+                    child: _buildPaymentCard(),
+                  ),
                   const SizedBox(height: 16),
-                  _buildFeedbackCard(),
+                  FadeInLeft(
+                    duration: const Duration(milliseconds: 400),
+                    delay: const Duration(milliseconds: 500),
+                    child: _buildFeedbackCard(),
+                  ),
                   const SizedBox(height: 16),
-                  _buildTabSection(),
+                  FadeInLeft(
+                    duration: const Duration(milliseconds: 400),
+                    delay: const Duration(milliseconds: 600),
+                    child: _buildTabSection(),
+                  ),
                 ],
               ),
             ),
@@ -118,29 +145,33 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
                                   : const Color(0xFFE2E8F0)),
                       ),
                     ),
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: isActive
-                            ? const Color(0xFF00CBA9)
-                            : Colors.white,
-                        shape: BoxShape.circle,
-                        border: Border.all(
+                    ZoomIn(
+                      duration: const Duration(milliseconds: 400),
+                      delay: Duration(milliseconds: index * 100),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
                           color: isActive
                               ? const Color(0xFF00CBA9)
-                              : const Color(0xFFE2E8F0),
-                          width: 2,
+                              : Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isActive
+                                ? const Color(0xFF00CBA9)
+                                : const Color(0xFFE2E8F0),
+                            width: 2,
+                          ),
                         ),
-                      ),
-                      child: Icon(
-                        isCurrent
-                            ? Icons.chat_bubble_rounded
-                            : Icons.check_rounded,
-                        size: 16,
-                        color: isActive
-                            ? Colors.white
-                            : const Color(0xFF94A3B8),
+                        child: Icon(
+                          isCurrent
+                              ? Icons.chat_bubble_rounded
+                              : Icons.check_rounded,
+                          size: 16,
+                          color: isActive
+                              ? Colors.white
+                              : const Color(0xFF94A3B8),
+                        ),
                       ),
                     ),
                     Expanded(

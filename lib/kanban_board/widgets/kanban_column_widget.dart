@@ -729,15 +729,18 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
               angle: 0.1,
               child: Transform.scale(
                 scale: 0.9,
-                child: SizedBox(
-                  width: widget.config.columnProps.width - 20,
-                  child: widget.config.cardProps.builder != null
-                      ? widget.config.cardProps.builder!(context, task, true)
-                      : KanbanTaskCard<T>(
-                          task: task,
-                          isDragging: true,
-                          props: widget.config.cardProps,
-                        ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: SizedBox(
+                    width: widget.config.columnProps.width - 20,
+                    child: widget.config.cardProps.builder != null
+                        ? widget.config.cardProps.builder!(context, task, true)
+                        : KanbanTaskCard<T>(
+                            task: task,
+                            isDragging: true,
+                            props: widget.config.cardProps,
+                          ),
+                  ),
                 ),
               ),
             );

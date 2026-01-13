@@ -69,48 +69,75 @@ class _AddLeadScreenState extends ConsumerState<AddLeadScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildPhoneField(),
-                    const SizedBox(height: 20),
-                    _buildTextField(
-                      controller: _nameController,
-                      label: 'Full Name',
-                      isRequired: true,
+                    FadeInUp(
+                      duration: const Duration(milliseconds: 400),
+                      child: _buildPhoneField(),
                     ),
                     const SizedBox(height: 20),
-                    _buildTextField(
-                      controller: _ageController,
-                      label: 'Age',
-                      keyboardType: TextInputType.number,
+                    FadeInUp(
+                      duration: const Duration(milliseconds: 400),
+                      delay: const Duration(milliseconds: 100),
+                      child: _buildTextField(
+                        controller: _nameController,
+                        label: 'Full Name',
+                        isRequired: true,
+                      ),
                     ),
                     const SizedBox(height: 20),
-                    _buildDropdownField(
-                      label: 'Location',
-                      value: _selectedLocation,
-                      items: ['London', 'New York', 'Dubai', 'Mumbai'],
-                      onChanged: (val) =>
-                          setState(() => _selectedLocation = val!),
+                    FadeInUp(
+                      duration: const Duration(milliseconds: 400),
+                      delay: const Duration(milliseconds: 200),
+                      child: _buildTextField(
+                        controller: _ageController,
+                        label: 'Age',
+                        keyboardType: TextInputType.number,
+                      ),
                     ),
                     const SizedBox(height: 20),
-                    _buildDropdownField(
-                      label: 'Interested In',
-                      value: _selectedInterest,
-                      items: ['Real Estate', 'Insurance', 'Auto Loans'],
-                      onChanged: (val) =>
-                          setState(() => _selectedInterest = val!),
+                    FadeInUp(
+                      duration: const Duration(milliseconds: 400),
+                      delay: const Duration(milliseconds: 300),
+                      child: _buildDropdownField(
+                        label: 'Location',
+                        value: _selectedLocation,
+                        items: ['London', 'New York', 'Dubai', 'Mumbai'],
+                        onChanged: (val) =>
+                            setState(() => _selectedLocation = val!),
+                      ),
                     ),
                     const SizedBox(height: 20),
-                    _buildDropdownField(
-                      label: 'Lead Source',
-                      value: _selectedSource,
-                      items: ['Website', 'Referral', 'Social Media', 'Ads'],
-                      onChanged: (val) =>
-                          setState(() => _selectedSource = val!),
+                    FadeInUp(
+                      duration: const Duration(milliseconds: 400),
+                      delay: const Duration(milliseconds: 400),
+                      child: _buildDropdownField(
+                        label: 'Interested In',
+                        value: _selectedInterest,
+                        items: ['Real Estate', 'Insurance', 'Auto Loans'],
+                        onChanged: (val) =>
+                            setState(() => _selectedInterest = val!),
+                      ),
                     ),
                     const SizedBox(height: 20),
-                    _buildTextField(
-                      controller: _commentsController,
-                      label: 'Comments',
-                      maxLines: 4,
+                    FadeInUp(
+                      duration: const Duration(milliseconds: 400),
+                      delay: const Duration(milliseconds: 500),
+                      child: _buildDropdownField(
+                        label: 'Lead Source',
+                        value: _selectedSource,
+                        items: ['Website', 'Referral', 'Social Media', 'Ads'],
+                        onChanged: (val) =>
+                            setState(() => _selectedSource = val!),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    FadeInUp(
+                      duration: const Duration(milliseconds: 400),
+                      delay: const Duration(milliseconds: 600),
+                      child: _buildTextField(
+                        controller: _commentsController,
+                        label: 'Comments',
+                        maxLines: 4,
+                      ),
                     ),
                     const SizedBox(height: 100), // Space for sticky button
                   ],
@@ -132,43 +159,53 @@ class _AddLeadScreenState extends ConsumerState<AddLeadScreen> {
             ),
           ],
         ),
-        child: Container(
-          height: 56,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1B85BC), Color(0xFF00CBA9)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF1B85BC).withOpacity(0.3),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: _submitForm,
-              borderRadius: BorderRadius.circular(12),
-              child: const Center(
-                child: Text(
-                  'CREATE LEAD',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 15,
-                    letterSpacing: 1.2,
+        child:
+            Container(
+                  height: 56,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF1B85BC), Color(0xFF00CBA9)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF1B85BC).withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _submitForm,
+                      borderRadius: BorderRadius.circular(12),
+                      child: const Center(
+                        child: Text(
+                          'CREATE LEAD',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 15,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+                .animate(
+                  onPlay: (controller) => controller.repeat(reverse: true),
+                )
+                .scale(
+                  duration: 1000.ms,
+                  begin: const Offset(1, 1),
+                  end: const Offset(1.02, 1.02),
+                  curve: Curves.easeInOut,
                 ),
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

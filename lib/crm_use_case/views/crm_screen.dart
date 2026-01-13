@@ -27,7 +27,11 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
       appBar: _buildAppBar(context),
       body: Column(
         children: [
-          if (!_isSearchExpanded) _buildTopFilters(context),
+          if (!_isSearchExpanded)
+            FadeInDown(
+              duration: const Duration(milliseconds: 500),
+              child: _buildTopFilters(context),
+            ),
           Expanded(
             child: KanbanBoardView<CRMTask>(
               provider: crmBoardProvider,
@@ -48,15 +52,18 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
                   padding: EdgeInsets.zero,
                   borderRadius: BorderRadius.circular(20),
                   backgroundColor: Colors.white,
-                  builder: (context, task, isDragging) => InkWell(
-                    borderRadius: BorderRadius.circular(20),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LeadDetailScreen(task: task),
+                  builder: (context, task, isDragging) => Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LeadDetailScreen(task: task),
+                        ),
                       ),
+                      child: _buildCRMCard(context, task, isDragging),
                     ),
-                    child: _buildCRMCard(context, task, isDragging),
                   ),
                 ),
               ),
@@ -64,31 +71,34 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
           ),
         ],
       ),
-      floatingActionButton: Container(
-        height: 64,
-        width: 64,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF1B85BC), Color(0xFF00CBA9)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF1B85BC).withOpacity(0.3),
-              blurRadius: 15,
-              offset: const Offset(0, 6),
+      floatingActionButton: ElasticIn(
+        delay: const Duration(milliseconds: 600),
+        child: Container(
+          height: 64,
+          width: 64,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF1B85BC), Color(0xFF00CBA9)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-          ],
-        ),
-        child: RawMaterialButton(
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddLeadScreen()),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF1B85BC).withOpacity(0.3),
+                blurRadius: 15,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-          shape: const CircleBorder(),
-          child: const Icon(Icons.add_rounded, color: Colors.white, size: 36),
+          child: RawMaterialButton(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AddLeadScreen()),
+            ),
+            shape: const CircleBorder(),
+            child: const Icon(Icons.add_rounded, color: Colors.white, size: 36),
+          ),
         ),
       ),
     );
@@ -174,26 +184,31 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF1B85BC), Color(0xFF00CBA9)],
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF1B85BC), Color(0xFF00CBA9)],
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'CRM',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 11,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    )
+                    .animate(onPlay: (c) => c.repeat())
+                    .shimmer(
+                      duration: 2000.ms,
+                      color: Colors.white.withOpacity(0.3),
                     ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'CRM',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 11,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
               ],
             ),
       actions: [
