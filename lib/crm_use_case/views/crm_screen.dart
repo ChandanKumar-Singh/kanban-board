@@ -250,6 +250,15 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
             ),
           ),
           const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.refresh, size: 18, color: Color(0xFF64748B)),
+            onPressed: () =>
+                ref.read(crmBoardProvider.notifier).refreshColumn(column.id),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            visualDensity: VisualDensity.compact,
+          ),
+          const SizedBox(width: 8),
           Text(
             '($count)',
             style: const TextStyle(

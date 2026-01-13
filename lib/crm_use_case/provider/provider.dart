@@ -117,8 +117,8 @@ class CRMRepository extends KanbanRepository<CRMTask> {
   Future<void> updateTask(String columnId, CRMTask task) async {}
 
   @override
-  Future<List<CRMTask>> loadMore(String columnId, int currentLength) async {
-    await Future.delayed(const Duration(seconds: 1)); // Simulate network
+  Future<List<CRMTask>> getTasks(String columnId, int currentLength) async {
+    await Future.delayed(const Duration(seconds: 2)); // Simulate network
     return [
       CRMTask(
         title: 'New Lead ${currentLength + 1}',

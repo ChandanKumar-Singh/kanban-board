@@ -13,7 +13,7 @@ abstract class KanbanRepository<T extends KanbanTask> {
   );
   Future<void> updateTask(String columnId, T task);
   Future<void> deleteTask(String columnId, String taskId);
-  Future<List<T>> loadMore(String columnId, int currentLength);
+  Future<List<T>> getTasks(String columnId, int currentLength);
 }
 
 class KanbanBoardData<T extends KanbanTask> {
@@ -227,7 +227,7 @@ class DemoKanbanRepository implements KanbanRepository<DefaultKanbanTask> {
   }
 
   @override
-  Future<List<DefaultKanbanTask>> loadMore(
+  Future<List<DefaultKanbanTask>> getTasks(
     String columnId,
     int currentLength,
   ) async {
@@ -240,5 +240,17 @@ class DemoKanbanRepository implements KanbanRepository<DefaultKanbanTask> {
         dueDate: DateTime.now().add(const Duration(days: 3)),
       ),
     );
+  }
+
+  @override
+  Future<List<DefaultKanbanTask>> refreshColumn(String columnId) async {
+    await Future.delayed(const Duration(seconds: 1));
+    return [
+      DefaultKanbanTask(
+        title: 'Refreshed Task',
+        description: 'Loaded via refresh',
+        dueDate: DateTime.now().add(const Duration(days: 1)),
+      ),
+    ];
   }
 }

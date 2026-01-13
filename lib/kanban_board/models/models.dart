@@ -136,7 +136,10 @@ class KanbanColumnProps<T extends KanbanTask> {
     this.headerPadding,
     this.cardSpacing = 8.0,
     this.showTaskCount = true,
+    this.showRefreshButton = true,
   });
+
+  final bool showRefreshButton;
 }
 
 class KanbanCardProps<T extends KanbanTask> {

@@ -226,7 +226,7 @@ class KanbanBoardNotifier<T extends KanbanTask>
     state = state.copyWith(columns: newColumns);
 
     try {
-      final moreTasks = await repository.loadMore(
+      final moreTasks = await repository.getTasks(
         columnId,
         column.tasks.length,
       );
@@ -242,6 +242,40 @@ class KanbanBoardNotifier<T extends KanbanTask>
           hasMore:
               moreTasks.isNotEmpty &&
               col.tasks.length + moreTasks.length < 50, // Example limit
+        );
+        state = state.copyWith(columns: updatedColumns);
+      }
+    } catch (e) {
+      final errorColumns = List<KanbanColumn<T>>.from(state.columns);
+      final idx = errorColumns.indexWhere((c) => c.id == columnId);
+      if (idx != -1) {
+        errorColumns[idx] = errorColumns[idx].copyWith(isLoading: false);
+        state = state.copyWith(columns: errorColumns);
+      }
+    }
+  }
+
+  Future<void> refreshColumn(String columnId) async {
+    final columnIndex = state.columns.indexWhere((c) => c.id == columnId);
+    if (columnIndex == -1 || state.columns[columnIndex].isLoading) return;
+
+    final newColumns = List<KanbanColumn<T>>.from(state.columns);
+    newColumns[columnIndex] = newColumns[columnIndex].copyWith(
+      isLoading: true,
+      tasks: [],
+    );
+    state = state.copyWith(columns: newColumns);
+
+    try {
+      final freshTasks = await repository.getTasks(columnId, 0);
+
+      final updatedColumns = List<KanbanColumn<T>>.from(state.columns);
+      final idx = updatedColumns.indexWhere((c) => c.id == columnId);
+      if (idx != -1) {
+        updatedColumns[idx] = updatedColumns[idx].copyWith(
+          tasks: freshTasks,
+          isLoading: false,
+          hasMore: freshTasks.isNotEmpty, // Reset hasMore based on fresh data
         );
         state = state.copyWith(columns: updatedColumns);
       }

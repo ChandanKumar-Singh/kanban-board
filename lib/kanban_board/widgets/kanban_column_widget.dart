@@ -187,6 +187,12 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
       child: Column(
         children: [
           _buildHeader(context, filteredTasks.length, ref, effectiveProvider),
+          if (widget.column.isLoading)
+            const LinearProgressIndicator(
+              minHeight: 2,
+              backgroundColor: Colors.transparent,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+            ),
           Expanded(
             child: Listener(
               onPointerMove: (event) {
@@ -280,17 +286,30 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
                       .updateHoverPosition(null, null);
                 },
                 builder: (context, candidateData, rejectedData) {
+                  final showSkeletons =
+                      filteredTasks.isEmpty && widget.column.isLoading;
                   return ListView.builder(
                     controller: _scrollController,
-                    itemCount:
-                        filteredTasks.length +
-                        (widget.column.hasMore ? 1 : 0) +
-                        (isCurrentColumnHovered ? 1 : 0) +
-                        1, // Extra target at bottom
+                    itemCount: showSkeletons
+                        ? 5
+                        : filteredTasks.length +
+                              (widget.column.hasMore ? 1 : 0) +
+                              (isCurrentColumnHovered ? 1 : 0) +
+                              1, // Extra target at bottom
                     padding:
                         widget.config.columnProps.padding ??
                         const EdgeInsets.symmetric(vertical: 8),
                     itemBuilder: (context, index) {
+                      if (showSkeletons) {
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            bottom: widget.config.columnProps.cardSpacing,
+                          ),
+                          child: KanbanCardSkeleton(
+                            props: widget.config.cardProps,
+                          ),
+                        );
+                      }
                       // 1. Extra transparent target at the bottom for easy dropping at end
                       if (index ==
                           filteredTasks.length +
@@ -454,7 +473,20 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
                 ),
               ),
             ),
-          const SizedBox(width: 8),
+          if (widget.config.columnProps.showRefreshButton)
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () =>
+                    ref.read(provider.notifier).refreshColumn(widget.column.id),
+                borderRadius: BorderRadius.circular(16),
+                child: const Padding(
+                  padding: EdgeInsets.all(4.0),
+                  child: Icon(Icons.refresh, color: Colors.white, size: 20),
+                ),
+              ),
+            ),
+          const SizedBox(width: 4),
           Material(
             color: Colors.transparent,
             child: InkWell(

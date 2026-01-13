@@ -174,7 +174,7 @@ class CustomKanbanRepository extends KanbanRepository<CustomKanbanTask> {
   }
 
   @override
-  Future<List<CustomKanbanTask>> loadMore(
+  Future<List<CustomKanbanTask>> getTasks(
     String columnId,
     int currentLength,
   ) async {
@@ -188,5 +188,11 @@ class CustomKanbanRepository extends KanbanRepository<CustomKanbanTask> {
         labels: ['Async'],
       ),
     );
+  }
+
+  @override
+  Future<List<CustomKanbanTask>> refreshColumn(String columnId) async {
+    await Future.delayed(const Duration(seconds: 1));
+    return _data[columnId] ?? [];
   }
 }
