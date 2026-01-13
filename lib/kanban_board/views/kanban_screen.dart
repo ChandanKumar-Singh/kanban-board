@@ -169,9 +169,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Custom Kanban Board'),
-      ),
+      appBar: AppBar(title: const Text('Custom Kanban Board')),
       body: KanbanBoardView<CustomKanbanTask>(
         provider: customKanbanBoardProvider,
         config: KanbanConfig<CustomKanbanTask>(
@@ -279,7 +277,7 @@ class _KanbanScreenState extends State<KanbanScreen> {
               ),
             );
           },
-          
+
           // Custom Column Header Builder
           columnHeaderBuilder: (context, column, count) {
             return Container(
