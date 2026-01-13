@@ -1,10 +1,21 @@
 part of '../index.dart';
 
-
-
 // 3. Custom Notifier & Provider
 class CustomKanbanBoardNotifier extends KanbanBoardNotifier<CustomKanbanTask> {
-  CustomKanbanBoardNotifier(super.repository);
+  CustomKanbanBoardNotifier(super.repository) : super(onFilter: filterTasks);
+
+  static List<CustomKanbanTask> filterTasks(
+    List<CustomKanbanTask> tasks,
+    String query,
+  ) {
+    if (query.isEmpty) return tasks;
+    final q = query.toLowerCase();
+    return tasks.where((task) {
+      return task.title.toLowerCase().contains(q) ||
+          task.subtitle.toLowerCase().contains(q) ||
+          task.labels.any((tag) => tag.toLowerCase().contains(q));
+    }).toList();
+  }
 
   @override
   void moveTask(
@@ -40,7 +51,6 @@ final customKanbanBoardProvider =
       final repository = ref.watch(customRepositoryProvider);
       return CustomKanbanBoardNotifier(repository);
     });
-
 
 class CustomKanbanRepository extends KanbanRepository<CustomKanbanTask> {
   final Map<String, List<CustomKanbanTask>> _data = {
@@ -180,5 +190,3 @@ class CustomKanbanRepository extends KanbanRepository<CustomKanbanTask> {
     );
   }
 }
-
-

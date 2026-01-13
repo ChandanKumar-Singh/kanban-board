@@ -18,6 +18,7 @@ class KanbanBoardState<T extends KanbanTask> {
   final KanbanBoardData<T>? selectedTaskBoard;
   final T? selectedTask;
   final String? selectedTaskColumnId;
+  final int totalFilteredCount;
 
   KanbanBoardState({
     this.columns = const [],
@@ -34,7 +35,15 @@ class KanbanBoardState<T extends KanbanTask> {
     this.selectedTask,
     this.selectedTaskColumnId,
     this.selectedTaskBoard,
+    this.totalFilteredCount = 0,
   });
+
+  /// Get all tasks across all columns
+  List<T> get allTasks => columns.expand((c) => c.tasks).toList();
+
+  /// Get the total count of tasks
+  int get totalTaskCount =>
+      columns.fold(0, (sum, col) => sum + col.tasks.length);
 
   KanbanBoardState<T> copyWith({
     List<KanbanColumn<T>>? columns,
@@ -53,6 +62,7 @@ class KanbanBoardState<T extends KanbanTask> {
     T? selectedTask,
     String? selectedTaskColumnId,
     bool resetSelection = false,
+    int? totalFilteredCount,
   }) {
     return KanbanBoardState<T>(
       columns: columns ?? this.columns,
@@ -74,6 +84,7 @@ class KanbanBoardState<T extends KanbanTask> {
       selectedTaskColumnId: resetSelection
           ? null
           : (selectedTaskColumnId ?? this.selectedTaskColumnId),
+      totalFilteredCount: totalFilteredCount ?? this.totalFilteredCount,
     );
   }
 }
@@ -81,8 +92,9 @@ class KanbanBoardState<T extends KanbanTask> {
 class KanbanBoardNotifier<T extends KanbanTask>
     extends StateNotifier<KanbanBoardState<T>> {
   final KanbanRepository<T> repository;
+  KanbanFilterCallback<T>? onFilter;
 
-  KanbanBoardNotifier(this.repository)
+  KanbanBoardNotifier(this.repository, {this.onFilter})
     : super(KanbanBoardState<T>(isInitialLoading: true)) {
     _init();
   }
@@ -135,6 +147,23 @@ class KanbanBoardNotifier<T extends KanbanTask>
   void updateHoverPosition(String? columnId, int? index) {
     if (state.hoverColumnId == columnId && state.hoverIndex == index) return;
     state = state.copyWith(hoverColumnId: columnId, hoverIndex: index);
+  }
+
+  @override
+  set state(KanbanBoardState<T> value) {
+    final filteredCount = _calculateFilteredCount(value);
+    super.state = value.copyWith(totalFilteredCount: filteredCount);
+  }
+
+  int _calculateFilteredCount(KanbanBoardState<T> state) {
+    if (onFilter == null) return state.totalTaskCount;
+    if (state.searchQuery.isEmpty) return state.totalTaskCount;
+
+    int count = 0;
+    for (var col in state.columns) {
+      count += onFilter!(col.tasks, state.searchQuery).length;
+    }
+    return count;
   }
 
   void updateSearchQuery(String query) {

@@ -142,7 +142,14 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
     final isCurrentColumnHovered = boardState.hoverColumnId == widget.column.id;
 
     final List<T> filteredTasks;
-    if (widget.config.onFilter != null) {
+    final notifier = ref.read(effectiveProvider.notifier);
+
+    if (notifier.onFilter != null) {
+      filteredTasks = notifier.onFilter!(
+        widget.column.tasks,
+        boardState.searchQuery,
+      );
+    } else if (widget.config.onFilter != null) {
       filteredTasks = widget.config.onFilter!(
         widget.column.tasks,
         boardState.searchQuery,
