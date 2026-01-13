@@ -14,9 +14,9 @@ class _KanbanScreenState extends State<KanbanScreen> {
       appBar: AppBar(title: const Text('Custom Kanban Board')),
       body: Column(
         children: [
-          // Expanded(
-            SizedBox(
-              height: 230,
+          Expanded(
+            // SizedBox(
+            //   height: 230,
             child: KanbanBoardView<CustomKanbanTask>(
               provider: customKanbanBoardProvider,
               config: KanbanConfig<CustomKanbanTask>(
@@ -54,8 +54,8 @@ class _KanbanScreenState extends State<KanbanScreen> {
                     color: Colors.transparent,
                     child: Container(
                       margin: const EdgeInsets.symmetric(
-                        vertical: 6,
-                        horizontal: 10,
+                        vertical: 5,
+                        horizontal: 7,
                       ),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
