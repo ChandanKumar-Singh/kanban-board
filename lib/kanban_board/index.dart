@@ -10,7 +10,6 @@ import 'package:shimmer/shimmer.dart';
 
 part 'models/models.dart';
 
-part 'views/kanban_screen.dart';
 part 'views/kanban_board_view.dart';
 
 part 'providers/kanban_provider.dart';

@@ -4,8 +4,9 @@ const _uuid = Uuid();
 
 enum TaskPriority { low, medium, high }
 
-abstract class KanbanTask {
-  String get id;
+class KanbanTask {
+  final String  id;
+  KanbanTask({required this.id});  
 }
 
 class DefaultKanbanTask implements KanbanTask {
