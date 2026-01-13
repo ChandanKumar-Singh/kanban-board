@@ -173,7 +173,30 @@ class CustomKanbanRepository extends KanbanRepository<CustomKanbanTask> {
   }
 }
 
-// 3. Custom Providers
+// 3. Custom Notifier & Provider
+class CustomKanbanBoardNotifier extends KanbanBoardNotifier<CustomKanbanTask> {
+  CustomKanbanBoardNotifier(super.repository);
+
+  @override
+  void moveTask(
+    String taskId,
+    String fromColumnId,
+    String toColumnId,
+    int toIndex,
+  ) {
+    debugPrint('CustomNotifier: Intercepted moveTask for $taskId');
+    // Add custom logic here, e.g., analytics or validation
+    super.moveTask(taskId, fromColumnId, toColumnId, toIndex);
+  }
+
+  @override
+  Future<void> addColumn(String title, int colorValue) async {
+    debugPrint('CustomNotifier: Adding new column: $title');
+    await super.addColumn(title, colorValue);
+    debugPrint('CustomNotifier: Column added successfully');
+  }
+}
+
 final customRepositoryProvider = Provider<KanbanRepository<CustomKanbanTask>>((
   ref,
 ) {
@@ -182,11 +205,11 @@ final customRepositoryProvider = Provider<KanbanRepository<CustomKanbanTask>>((
 
 final customKanbanBoardProvider =
     StateNotifierProvider<
-      KanbanBoardNotifier<CustomKanbanTask>,
+      CustomKanbanBoardNotifier,
       KanbanBoardState<CustomKanbanTask>
     >((ref) {
       final repository = ref.watch(customRepositoryProvider);
-      return KanbanBoardNotifier<CustomKanbanTask>(repository);
+      return CustomKanbanBoardNotifier(repository);
     });
 
 class KanbanScreen extends StatefulWidget {
@@ -203,9 +226,9 @@ class _KanbanScreenState extends State<KanbanScreen> {
       appBar: AppBar(title: const Text('Custom Kanban Board')),
       body: Column(
         children: [
-          Expanded(
-          // SizedBox(
-          //   height: 230,
+          // Expanded(
+            SizedBox(
+              height: 230,
             child: KanbanBoardView<CustomKanbanTask>(
               provider: customKanbanBoardProvider,
               config: KanbanConfig<CustomKanbanTask>(

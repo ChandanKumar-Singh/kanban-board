@@ -80,15 +80,15 @@ class KanbanBoardState<T extends KanbanTask> {
 
 class KanbanBoardNotifier<T extends KanbanTask>
     extends StateNotifier<KanbanBoardState<T>> {
-  final KanbanRepository<T> _repository;
+  final KanbanRepository<T> repository;
 
-  KanbanBoardNotifier(this._repository)
+  KanbanBoardNotifier(this.repository)
     : super(KanbanBoardState<T>(isInitialLoading: true)) {
     _init();
   }
 
   Future<void> _init() async {
-    final boards = await _repository.getAvailableBoards();
+    final boards = await repository.getAvailableBoards();
     state = state.copyWith(availableBoards: boards);
 
     if (boards.isNotEmpty) {
@@ -99,7 +99,7 @@ class KanbanBoardNotifier<T extends KanbanTask>
   Future<void> switchBoard(String boardId) async {
     state = state.copyWith(isBoardSwitching: true, currentBoardId: boardId);
 
-    final boardData = await _repository.getBoard(boardId);
+    final boardData = await repository.getBoard(boardId);
 
     state = state.copyWith(
       columns: boardData.columns,
@@ -142,7 +142,7 @@ class KanbanBoardNotifier<T extends KanbanTask>
   }
 
   Future<void> addTask(String columnId, T task) async {
-    final newTask = await _repository.createTask(columnId, task);
+    final newTask = await repository.createTask(columnId, task);
 
     final columnIndex = state.columns.indexWhere((c) => c.id == columnId);
     if (columnIndex == -1) return;
@@ -160,7 +160,7 @@ class KanbanBoardNotifier<T extends KanbanTask>
     if (state.currentBoardId == null) return;
 
     final newCol = KanbanColumn<T>(title: title, colorValue: colorValue);
-    final createdCol = await _repository.createColumn(
+    final createdCol = await repository.createColumn(
       state.currentBoardId!,
       newCol,
     );
@@ -197,7 +197,7 @@ class KanbanBoardNotifier<T extends KanbanTask>
     state = state.copyWith(columns: newColumns);
 
     try {
-      final moreTasks = await _repository.loadMore(
+      final moreTasks = await repository.loadMore(
         columnId,
         column.tasks.length,
       );
@@ -266,7 +266,7 @@ class KanbanBoardNotifier<T extends KanbanTask>
       resetHover: true,
     );
 
-    _repository.moveTask(taskId, fromColumnId, toColumnId, toIndex);
+    repository.moveTask(taskId, fromColumnId, toColumnId, toIndex);
   }
 
   void _reorderTask(String columnId, String taskId, int toIndex) {
@@ -303,7 +303,7 @@ class KanbanBoardNotifier<T extends KanbanTask>
       resetHover: true,
     );
 
-    _repository.moveTask(taskId, columnId, columnId, actualToIndex);
+    repository.moveTask(taskId, columnId, columnId, actualToIndex);
   }
 }
 
