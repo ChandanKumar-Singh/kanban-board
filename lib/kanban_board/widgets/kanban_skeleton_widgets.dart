@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:shimmer/shimmer.dart';
+part of '../index.dart';
 
 class KanbanCardSkeleton extends StatelessWidget {
   const KanbanCardSkeleton({Key? key}) : super(key: key);
@@ -19,11 +18,7 @@ class KanbanCardSkeleton extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 120,
-                height: 14,
-                color: Colors.white,
-              ),
+              Container(width: 120, height: 14, color: Colors.white),
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
@@ -31,25 +26,13 @@ class KanbanCardSkeleton extends StatelessWidget {
                 color: Colors.white,
               ),
               const SizedBox(height: 4),
-              Container(
-                width: 180,
-                height: 10,
-                color: Colors.white,
-              ),
+              Container(width: 180, height: 10, color: Colors.white),
               const Spacer(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    width: 60,
-                    height: 10,
-                    color: Colors.white,
-                  ),
-                  Container(
-                    width: 40,
-                    height: 10,
-                    color: Colors.white,
-                  ),
+                  Container(width: 60, height: 10, color: Colors.white),
+                  Container(width: 40, height: 10, color: Colors.white),
                 ],
               ),
             ],

@@ -1,9 +1,7 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/models.dart';
-import 'kanban_repository.dart';
+part of '../index.dart';
 
-class KanbanBoardState {
-  final List<KanbanColumn> columns;
+class KanbanBoardState<T extends KanbanTask> {
+  final List<KanbanColumn<T>> columns;
   final bool isInitialLoading;
   final String searchQuery;
   final bool isDragging;
@@ -13,12 +11,12 @@ class KanbanBoardState {
   final int? hoverIndex;
 
   // Multi-board support
-  final List<KanbanBoardData> availableBoards;
+  final List<KanbanBoardData<T>> availableBoards;
   final String? currentBoardId;
   final bool isBoardSwitching;
 
-  final KanbanBoardData? selectedTaskBoard;
-  final KanbanTask? selectedTask;
+  final KanbanBoardData<T>? selectedTaskBoard;
+  final T? selectedTask;
   final String? selectedTaskColumnId;
 
   KanbanBoardState({
@@ -38,8 +36,8 @@ class KanbanBoardState {
     this.selectedTaskBoard,
   });
 
-  KanbanBoardState copyWith({
-    List<KanbanColumn>? columns,
+  KanbanBoardState<T> copyWith({
+    List<KanbanColumn<T>>? columns,
     bool? isInitialLoading,
     String? searchQuery,
     bool? isDragging,
@@ -47,16 +45,16 @@ class KanbanBoardState {
     String? draggingColumnId,
     String? hoverColumnId,
     int? hoverIndex,
-    List<KanbanBoardData>? availableBoards,
+    List<KanbanBoardData<T>>? availableBoards,
     String? currentBoardId,
     bool? isBoardSwitching,
     bool resetDragging = false,
     bool resetHover = false,
-    KanbanTask? selectedTask,
+    T? selectedTask,
     String? selectedTaskColumnId,
     bool resetSelection = false,
   }) {
-    return KanbanBoardState(
+    return KanbanBoardState<T>(
       columns: columns ?? this.columns,
       isInitialLoading: isInitialLoading ?? this.isInitialLoading,
       searchQuery: searchQuery ?? this.searchQuery,
@@ -80,11 +78,12 @@ class KanbanBoardState {
   }
 }
 
-class KanbanBoardNotifier extends StateNotifier<KanbanBoardState> {
-  final KanbanRepository _repository;
+class KanbanBoardNotifier<T extends KanbanTask>
+    extends StateNotifier<KanbanBoardState<T>> {
+  final KanbanRepository<T> _repository;
 
   KanbanBoardNotifier(this._repository)
-    : super(KanbanBoardState(isInitialLoading: true)) {
+    : super(KanbanBoardState<T>(isInitialLoading: true)) {
     _init();
   }
 
@@ -109,7 +108,7 @@ class KanbanBoardNotifier extends StateNotifier<KanbanBoardState> {
     );
   }
 
-  void selectTask(KanbanTask? task, String? columnId) {
+  void selectTask(T? task, String? columnId) {
     state = state.copyWith(
       selectedTask: task,
       selectedTaskColumnId: columnId,
@@ -142,14 +141,14 @@ class KanbanBoardNotifier extends StateNotifier<KanbanBoardState> {
     state = state.copyWith(searchQuery: query);
   }
 
-  Future<void> addTask(String columnId, KanbanTask task) async {
+  Future<void> addTask(String columnId, T task) async {
     final newTask = await _repository.createTask(columnId, task);
 
     final columnIndex = state.columns.indexWhere((c) => c.id == columnId);
     if (columnIndex == -1) return;
 
     final column = state.columns[columnIndex];
-    final newColumns = List<KanbanColumn>.from(state.columns);
+    final newColumns = List<KanbanColumn<T>>.from(state.columns);
     newColumns[columnIndex] = column.copyWith(
       tasks: [...column.tasks, newTask],
     );
@@ -160,7 +159,7 @@ class KanbanBoardNotifier extends StateNotifier<KanbanBoardState> {
   Future<void> addColumn(String title, int colorValue) async {
     if (state.currentBoardId == null) return;
 
-    final newCol = KanbanColumn(title: title, colorValue: colorValue);
+    final newCol = KanbanColumn<T>(title: title, colorValue: colorValue);
     final createdCol = await _repository.createColumn(
       state.currentBoardId!,
       newCol,
@@ -169,7 +168,7 @@ class KanbanBoardNotifier extends StateNotifier<KanbanBoardState> {
     state = state.copyWith(columns: [...state.columns, createdCol]);
   }
 
-  void updateTask(String columnId, KanbanTask updatedTask) {
+  void updateTask(String columnId, T updatedTask) {
     final columnIndex = state.columns.indexWhere((c) => c.id == columnId);
     if (columnIndex == -1) return;
 
@@ -177,10 +176,10 @@ class KanbanBoardNotifier extends StateNotifier<KanbanBoardState> {
     final taskIndex = column.tasks.indexWhere((t) => t.id == updatedTask.id);
     if (taskIndex == -1) return;
 
-    final newTasks = List<KanbanTask>.from(column.tasks);
+    final newTasks = List<T>.from(column.tasks);
     newTasks[taskIndex] = updatedTask;
 
-    final newColumns = List<KanbanColumn>.from(state.columns);
+    final newColumns = List<KanbanColumn<T>>.from(state.columns);
     newColumns[columnIndex] = column.copyWith(tasks: newTasks);
 
     state = state.copyWith(columns: newColumns);
@@ -190,29 +189,36 @@ class KanbanBoardNotifier extends StateNotifier<KanbanBoardState> {
     final columnIndex = state.columns.indexWhere((c) => c.id == columnId);
     if (columnIndex == -1 || state.columns[columnIndex].isLoading) return;
 
-    final newColumns = List<KanbanColumn>.from(state.columns);
+    final newColumns = List<KanbanColumn<T>>.from(state.columns);
     newColumns[columnIndex] = newColumns[columnIndex].copyWith(isLoading: true);
     state = state.copyWith(columns: newColumns);
+
+    // This is hardcoded for DemoKanbanRepository/DefaultKanbanTask.
+    // In a real generic app, loading more should be handled by the repository.
+    final moreTasks = <T>[];
+    if (T == DefaultKanbanTask) {
+      final tasks = state.columns.fold(
+        <DefaultKanbanTask>[],
+        (prev, col) => [...prev, ...(col.tasks as List<DefaultKanbanTask>)],
+      );
+      moreTasks.addAll(
+        List.generate(
+          4,
+          (i) =>
+              DefaultKanbanTask(
+                    title: 'More Task ${tasks.length + 1 + i}',
+                    description: 'Dynamically loaded',
+                    dueDate: DateTime.now().add(const Duration(days: 3)),
+                  )
+                  as T,
+        ).toList(),
+      );
+    }
 
     await Future.delayed(const Duration(seconds: 1));
 
     final column = state.columns[columnIndex];
-    final tasks = state.columns.fold(
-      <KanbanTask>[],
-      (prev, col) => [...prev, ...col.tasks],
-    );
-    final moreTasks = [
-      ...List.generate(
-        4,
-        (i) => KanbanTask(
-          title: 'More Task ${tasks.length + 1 + i}',
-          description: 'Dynamically loaded',
-          dueDate: DateTime.now().add(const Duration(days: 3)),
-        ),
-      ),
-    ];
-
-    final updatedColumns = List<KanbanColumn>.from(state.columns);
+    final updatedColumns = List<KanbanColumn<T>>.from(state.columns);
     updatedColumns[columnIndex] = column.copyWith(
       tasks: [...column.tasks, ...moreTasks],
       isLoading: false,
@@ -248,12 +254,10 @@ class KanbanBoardNotifier extends StateNotifier<KanbanBoardState> {
 
     final task = fromColumn.tasks[taskIndex];
 
-    final newFromTasks = List<KanbanTask>.from(fromColumn.tasks)
-      ..removeAt(taskIndex);
-    final newToTasks = List<KanbanTask>.from(toColumn.tasks)
-      ..insert(toIndex, task);
+    final newFromTasks = List<T>.from(fromColumn.tasks)..removeAt(taskIndex);
+    final newToTasks = List<T>.from(toColumn.tasks)..insert(toIndex, task);
 
-    final newColumns = List<KanbanColumn>.from(state.columns);
+    final newColumns = List<KanbanColumn<T>>.from(state.columns);
     newColumns[fromColumnIndex] = fromColumn.copyWith(tasks: newFromTasks);
     newColumns[toColumnIndex] = toColumn.copyWith(tasks: newToTasks);
 
@@ -282,7 +286,7 @@ class KanbanBoardNotifier extends StateNotifier<KanbanBoardState> {
       return;
     }
 
-    final newTasks = List<KanbanTask>.from(column.tasks);
+    final newTasks = List<T>.from(column.tasks);
     final task = newTasks.removeAt(fromIndex);
 
     int actualToIndex = toIndex;
@@ -291,7 +295,7 @@ class KanbanBoardNotifier extends StateNotifier<KanbanBoardState> {
 
     newTasks.insert(actualToIndex, task);
 
-    final newColumns = List<KanbanColumn>.from(state.columns);
+    final newColumns = List<KanbanColumn<T>>.from(state.columns);
     newColumns[columnIndex] = column.copyWith(tasks: newTasks);
 
     state = state.copyWith(
@@ -305,12 +309,17 @@ class KanbanBoardNotifier extends StateNotifier<KanbanBoardState> {
   }
 }
 
-final kanbanRepositoryProvider = Provider<KanbanRepository>((ref) {
+final kanbanRepositoryProvider = Provider<KanbanRepository<DefaultKanbanTask>>((
+  ref,
+) {
   return DemoKanbanRepository();
 });
 
 final kanbanBoardProvider =
-    StateNotifierProvider<KanbanBoardNotifier, KanbanBoardState>((ref) {
+    StateNotifierProvider<
+      KanbanBoardNotifier<DefaultKanbanTask>,
+      KanbanBoardState<DefaultKanbanTask>
+    >((ref) {
       final repository = ref.watch(kanbanRepositoryProvider);
-      return KanbanBoardNotifier(repository);
+      return KanbanBoardNotifier<DefaultKanbanTask>(repository);
     });

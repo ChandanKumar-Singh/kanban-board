@@ -1,10 +1,10 @@
-import '../models/models.dart';
+part of '../index.dart';
 
-abstract class KanbanRepository {
-  Future<List<KanbanBoardData>> getAvailableBoards();
-  Future<KanbanBoardData> getBoard(String boardId);
-  Future<KanbanTask> createTask(String columnId, KanbanTask task);
-  Future<KanbanColumn> createColumn(String boardId, KanbanColumn column);
+abstract class KanbanRepository<T extends KanbanTask> {
+  Future<List<KanbanBoardData<T>>> getAvailableBoards();
+  Future<KanbanBoardData<T>> getBoard(String boardId);
+  Future<T> createTask(String columnId, T task);
+  Future<KanbanColumn<T>> createColumn(String boardId, KanbanColumn<T> column);
   Future<void> moveTask(
     String taskId,
     String fromColumnId,
@@ -13,10 +13,10 @@ abstract class KanbanRepository {
   );
 }
 
-class KanbanBoardData {
+class KanbanBoardData<T extends KanbanTask> {
   final String id;
   final String name;
-  final List<KanbanColumn> columns;
+  final List<KanbanColumn<T>> columns;
 
   KanbanBoardData({
     required this.id,
@@ -25,9 +25,9 @@ class KanbanBoardData {
   });
 }
 
-class DemoKanbanRepository implements KanbanRepository {
+class DemoKanbanRepository implements KanbanRepository<DefaultKanbanTask> {
   @override
-  Future<List<KanbanBoardData>> getAvailableBoards() async {
+  Future<List<KanbanBoardData<DefaultKanbanTask>>> getAvailableBoards() async {
     return [
       KanbanBoardData(id: 'dev', name: 'Development'),
       KanbanBoardData(id: 'marketing', name: 'Marketing'),
@@ -35,7 +35,7 @@ class DemoKanbanRepository implements KanbanRepository {
   }
 
   @override
-  Future<KanbanBoardData> getBoard(String boardId) async {
+  Future<KanbanBoardData<DefaultKanbanTask>> getBoard(String boardId) async {
     await Future.delayed(const Duration(milliseconds: 800));
 
     if (boardId == 'marketing') {
@@ -47,7 +47,7 @@ class DemoKanbanRepository implements KanbanRepository {
             title: 'Campaign Ideas',
             colorValue: 0xFF9C27B0,
             tasks: [
-              KanbanTask(
+              DefaultKanbanTask(
                 title: 'Q3 Social Blast',
                 description: 'Plan posts for Twitter, LinkedIn, and Instagram.',
                 dueDate: DateTime.now().add(const Duration(days: 5)),
@@ -55,7 +55,7 @@ class DemoKanbanRepository implements KanbanRepository {
                 tags: ['Social', 'Q3'],
                 assignee: 'Sarah',
               ),
-              KanbanTask(
+              DefaultKanbanTask(
                 title: 'Influencer Outreach',
                 description: 'Contact top 50 tech influencers.',
                 dueDate: DateTime.now().add(const Duration(days: 10)),
@@ -69,7 +69,7 @@ class DemoKanbanRepository implements KanbanRepository {
             title: 'In Progress',
             colorValue: 0xFFFF9800,
             tasks: [
-              KanbanTask(
+              DefaultKanbanTask(
                 title: 'Blog Post: Kanban 101',
                 description: 'Drafting the introductory post.',
                 dueDate: DateTime.now().add(const Duration(days: 2)),
@@ -83,7 +83,7 @@ class DemoKanbanRepository implements KanbanRepository {
             title: 'Published',
             colorValue: 0xFF4CAF50,
             tasks: [
-              KanbanTask(
+              DefaultKanbanTask(
                 title: 'Website Relaunch',
                 description: 'New landing page is live.',
                 dueDate: DateTime.now().subtract(const Duration(days: 1)),
@@ -106,14 +106,14 @@ class DemoKanbanRepository implements KanbanRepository {
           colorValue: 0xFF607D8B,
           hasMore: true,
           tasks: [
-            KanbanTask(
+            DefaultKanbanTask(
               title: 'Optimize Database',
               description: 'Add indexes to user_activity table.',
               dueDate: DateTime.now().add(const Duration(days: 14)),
               priority: TaskPriority.low,
               tags: ['Db', 'Perf'],
             ),
-            KanbanTask(
+            DefaultKanbanTask(
               title: 'Update Flutter SDK',
               description: 'Migrate to version 3.29.',
               dueDate: DateTime.now().add(const Duration(days: 30)),
@@ -125,7 +125,7 @@ class DemoKanbanRepository implements KanbanRepository {
           title: 'To Do',
           colorValue: 0xFFF44336,
           tasks: [
-            KanbanTask(
+            DefaultKanbanTask(
               title: 'Auth Integration',
               description: 'Implement OAuth2 flow.',
               dueDate: DateTime.now().add(const Duration(days: 2)),
@@ -133,7 +133,7 @@ class DemoKanbanRepository implements KanbanRepository {
               tags: ['Auth', 'Security'],
               assignee: 'Alice',
             ),
-            KanbanTask(
+            DefaultKanbanTask(
               title: 'Unit Tests',
               description: 'Increase coverage to 80%.',
               dueDate: DateTime.now().add(const Duration(days: 1)),
@@ -147,7 +147,7 @@ class DemoKanbanRepository implements KanbanRepository {
           title: 'In Progress',
           colorValue: 0xFF2196F3,
           tasks: [
-            KanbanTask(
+            DefaultKanbanTask(
               title: 'Kanban Drag & Drop',
               description: 'Refining the drag interactions.',
               dueDate: DateTime.now(),
@@ -161,7 +161,7 @@ class DemoKanbanRepository implements KanbanRepository {
           title: 'Code Review',
           colorValue: 0xFFFFC107,
           tasks: [
-            KanbanTask(
+            DefaultKanbanTask(
               title: 'API Endpoints',
               description: 'Review the new REST endpoints.',
               dueDate: DateTime.now().subtract(const Duration(hours: 4)),
@@ -174,7 +174,7 @@ class DemoKanbanRepository implements KanbanRepository {
           title: 'Done',
           colorValue: 0xFF4CAF50,
           tasks: [
-            KanbanTask(
+            DefaultKanbanTask(
               title: 'Project Setup',
               description: 'Initial repo creation.',
               dueDate: DateTime.now().subtract(const Duration(days: 5)),
@@ -188,12 +188,18 @@ class DemoKanbanRepository implements KanbanRepository {
   }
 
   @override
-  Future<KanbanTask> createTask(String columnId, KanbanTask task) async {
+  Future<DefaultKanbanTask> createTask(
+    String columnId,
+    DefaultKanbanTask task,
+  ) async {
     return task; // Real implementation would hit API
   }
 
   @override
-  Future<KanbanColumn> createColumn(String boardId, KanbanColumn column) async {
+  Future<KanbanColumn<DefaultKanbanTask>> createColumn(
+    String boardId,
+    KanbanColumn<DefaultKanbanTask> column,
+  ) async {
     return column;
   }
 

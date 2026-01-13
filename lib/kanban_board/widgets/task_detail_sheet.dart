@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/models.dart';
-import '../providers/kanban_provider.dart';
+part of '../index.dart';
 
 class TaskDetailSheet extends ConsumerStatefulWidget {
   final KanbanTask task;
@@ -27,11 +24,20 @@ class _TaskDetailSheetState extends ConsumerState<TaskDetailSheet> {
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.task.title);
-    _descController = TextEditingController(text: widget.task.description);
-    _assigneeController = TextEditingController(text: widget.task.assignee);
-    _priority = widget.task.priority;
-    _dueDate = widget.task.dueDate;
+    if (widget.task is DefaultKanbanTask) {
+      final t = widget.task as DefaultKanbanTask;
+      _titleController = TextEditingController(text: t.title);
+      _descController = TextEditingController(text: t.description);
+      _assigneeController = TextEditingController(text: t.assignee);
+      _priority = t.priority;
+      _dueDate = t.dueDate;
+    } else {
+      _titleController = TextEditingController();
+      _descController = TextEditingController();
+      _assigneeController = TextEditingController();
+      _priority = TaskPriority.medium;
+      _dueDate = DateTime.now();
+    }
   }
 
   @override
@@ -43,7 +49,10 @@ class _TaskDetailSheetState extends ConsumerState<TaskDetailSheet> {
   }
 
   void _save() {
-    final updatedTask = widget.task.copyWith(
+    if (widget.task is! DefaultKanbanTask) return;
+
+    final t = widget.task as DefaultKanbanTask;
+    final updatedTask = t.copyWith(
       title: _titleController.text,
       description: _descController.text,
       assignee: _assigneeController.text,
@@ -54,15 +63,22 @@ class _TaskDetailSheetState extends ConsumerState<TaskDetailSheet> {
     ref
         .read(kanbanBoardProvider.notifier)
         .updateTask(widget.columnId, updatedTask);
-
-    // Close sidebar immediately if persistent, or let parent handle
   }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.task is! DefaultKanbanTask) {
+      return Container(
+        color: Colors.white,
+        padding: const EdgeInsets.all(24),
+        child: const Center(child: Text("Custom detail sheet needed")),
+      );
+    }
+
     return Container(
       color: Colors.white,
       child: Column(
+        // ... rest of build method is fine as it uses the controllers and local state
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Header

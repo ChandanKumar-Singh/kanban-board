@@ -1,12 +1,11 @@
-import 'package:flutter/material.dart';
-import '../models/models.dart';
+part of '../index.dart';
 
 class TaskDetailDialog extends StatefulWidget {
   final KanbanTask task;
   final Function(KanbanTask) onSave;
 
   const TaskDetailDialog({Key? key, required this.task, required this.onSave})
-      : super(key: key);
+    : super(key: key);
 
   @override
   State<TaskDetailDialog> createState() => _TaskDetailDialogState();
@@ -21,11 +20,18 @@ class _TaskDetailDialogState extends State<TaskDetailDialog> {
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.task.title);
-    _descriptionController =
-        TextEditingController(text: widget.task.description);
-    _assigneeController = TextEditingController(text: widget.task.assignee);
-    _priority = widget.task.priority;
+    if (widget.task is DefaultKanbanTask) {
+      final t = widget.task as DefaultKanbanTask;
+      _titleController = TextEditingController(text: t.title);
+      _descriptionController = TextEditingController(text: t.description);
+      _assigneeController = TextEditingController(text: t.assignee);
+      _priority = t.priority;
+    } else {
+      _titleController = TextEditingController();
+      _descriptionController = TextEditingController();
+      _assigneeController = TextEditingController();
+      _priority = TaskPriority.medium;
+    }
   }
 
   @override
@@ -38,6 +44,19 @@ class _TaskDetailDialogState extends State<TaskDetailDialog> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.task is! DefaultKanbanTask) {
+      return AlertDialog(
+        title: const Text('Custom Task'),
+        content: const Text('Default editor only supports DefaultKanbanTask.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      );
+    }
+
     return AlertDialog(
       title: const Text('Edit Task'),
       content: SingleChildScrollView(
@@ -83,7 +102,8 @@ class _TaskDetailDialogState extends State<TaskDetailDialog> {
         ),
         ElevatedButton(
           onPressed: () {
-            final updatedTask = widget.task.copyWith(
+            final t = widget.task as DefaultKanbanTask;
+            final updatedTask = t.copyWith(
               title: _titleController.text,
               description: _descriptionController.text,
               assignee: _assigneeController.text,

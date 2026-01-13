@@ -1,11 +1,15 @@
-import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
+part of '../index.dart';
 
 const _uuid = Uuid();
 
 enum TaskPriority { low, medium, high }
 
-class KanbanTask {
+abstract class KanbanTask {
+  String get id;
+}
+
+class DefaultKanbanTask implements KanbanTask {
+  @override
   final String id;
   final String title;
   final String description;
@@ -16,7 +20,7 @@ class KanbanTask {
   final List<String> tags;
   final String? assigneeAvatar;
 
-  KanbanTask({
+  DefaultKanbanTask({
     String? id,
     required this.title,
     this.description = '',
@@ -28,7 +32,7 @@ class KanbanTask {
     this.assigneeAvatar,
   }) : id = id ?? _uuid.v4();
 
-  KanbanTask copyWith({
+  DefaultKanbanTask copyWith({
     String? title,
     String? description,
     String? assignee,
@@ -38,7 +42,7 @@ class KanbanTask {
     List<String>? tags,
     String? assigneeAvatar,
   }) {
-    return KanbanTask(
+    return DefaultKanbanTask(
       id: id,
       title: title ?? this.title,
       description: description ?? this.description,
@@ -52,10 +56,10 @@ class KanbanTask {
   }
 }
 
-class KanbanColumn {
+class KanbanColumn<T extends KanbanTask> {
   final String id;
   final String title;
-  final List<KanbanTask> tasks;
+  final List<T> tasks;
   final int colorValue; // ARGB hex value
   final bool isLoading;
   final bool hasMore;
@@ -69,14 +73,14 @@ class KanbanColumn {
     this.hasMore = false,
   }) : id = id ?? _uuid.v4();
 
-  KanbanColumn copyWith({
+  KanbanColumn<T> copyWith({
     String? title,
-    List<KanbanTask>? tasks,
+    List<T>? tasks,
     int? colorValue,
     bool? isLoading,
     bool? hasMore,
   }) {
-    return KanbanColumn(
+    return KanbanColumn<T>(
       id: id,
       title: title ?? this.title,
       tasks: tasks ?? this.tasks,
@@ -87,13 +91,29 @@ class KanbanColumn {
   }
 }
 
-class KanbanConfig {
+typedef KanbanFilterCallback<T extends KanbanTask> =
+    List<T> Function(List<T> tasks, String query);
+typedef KanbanCardBuilder<T extends KanbanTask> =
+    Widget Function(BuildContext context, T task, bool isDragging);
+typedef KanbanColumnHeaderBuilder<T extends KanbanTask> =
+    Widget Function(
+      BuildContext context,
+      KanbanColumn<T> column,
+      int taskCount,
+    );
+
+class KanbanConfig<T extends KanbanTask> {
   final double cardElevation;
   final double columnWidth;
   final EdgeInsets cardMargin;
   final BorderRadius borderRadius;
   final TextStyle? titleStyle;
-  final Function(KanbanTask, String, String)? onTaskMoved;
+  final Function(T, String, String)? onTaskMoved;
+
+  // New generic builders and callbacks
+  final KanbanCardBuilder<T>? cardBuilder;
+  final KanbanColumnHeaderBuilder<T>? columnHeaderBuilder;
+  final KanbanFilterCallback<T>? onFilter;
 
   const KanbanConfig({
     this.cardElevation = 2,
@@ -102,5 +122,8 @@ class KanbanConfig {
     this.borderRadius = const BorderRadius.all(Radius.circular(12)),
     this.titleStyle,
     this.onTaskMoved,
+    this.cardBuilder,
+    this.columnHeaderBuilder,
+    this.onFilter,
   });
 }

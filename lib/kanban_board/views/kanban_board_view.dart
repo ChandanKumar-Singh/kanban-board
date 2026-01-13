@@ -1,21 +1,22 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/kanban_provider.dart';
-import '../models/models.dart';
-import '../widgets/kanban_column_widget.dart';
-import '../widgets/task_detail_sheet.dart';
+part of '../index.dart';
 
-class KanbanBoardView extends ConsumerStatefulWidget {
-  final KanbanConfig config;
+class KanbanBoardView<T extends KanbanTask> extends ConsumerStatefulWidget {
+  final KanbanConfig<T> config;
+  final StateNotifierProvider<KanbanBoardNotifier<T>, KanbanBoardState<T>>?
+  provider;
 
-  const KanbanBoardView({super.key, this.config = const KanbanConfig()});
+  const KanbanBoardView({
+    super.key,
+    this.config = const KanbanConfig(),
+    this.provider,
+  });
 
   @override
-  ConsumerState<KanbanBoardView> createState() => _KanbanBoardViewState();
+  ConsumerState<KanbanBoardView<T>> createState() => _KanbanBoardViewState<T>();
 }
 
-class _KanbanBoardViewState extends ConsumerState<KanbanBoardView> {
+class _KanbanBoardViewState<T extends KanbanTask>
+    extends ConsumerState<KanbanBoardView<T>> {
   late ScrollController _scrollController;
   Timer? _scrollTimer;
   double _currentPointerX = 0;
@@ -64,7 +65,15 @@ class _KanbanBoardViewState extends ConsumerState<KanbanBoardView> {
 
   @override
   Widget build(BuildContext context) {
-    final boardState = ref.watch(kanbanBoardProvider);
+    // Fallback to default provider if none provided
+    final effectiveProvider =
+        widget.provider ??
+        (kanbanBoardProvider
+            as StateNotifierProvider<
+              KanbanBoardNotifier<T>,
+              KanbanBoardState<T>
+            >);
+    final boardState = ref.watch(effectiveProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFC),
@@ -92,7 +101,7 @@ class _KanbanBoardViewState extends ConsumerState<KanbanBoardView> {
                   }).toList(),
                   onChanged: (val) {
                     if (val != null) {
-                      ref.read(kanbanBoardProvider.notifier).switchBoard(val);
+                      ref.read(effectiveProvider.notifier).switchBoard(val);
                     }
                   },
                 ),
@@ -124,7 +133,7 @@ class _KanbanBoardViewState extends ConsumerState<KanbanBoardView> {
                     fontSize: 13,
                   ),
                   onChanged: (val) => ref
-                      .read(kanbanBoardProvider.notifier)
+                      .read(effectiveProvider.notifier)
                       .updateSearchQuery(val),
                 ),
               ),
@@ -138,7 +147,7 @@ class _KanbanBoardViewState extends ConsumerState<KanbanBoardView> {
               color: Color(0xFF4F5D75),
             ),
             onPressed: () {
-              _showAddColumnDialog(context, ref);
+              _showAddColumnDialog(context, ref, effectiveProvider);
             },
             tooltip: 'Add Column',
           ),
@@ -174,10 +183,11 @@ class _KanbanBoardViewState extends ConsumerState<KanbanBoardView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           ...boardState.columns.map((column) {
-                            return KanbanColumnWidget(
+                            return KanbanColumnWidget<T>(
                               key: ValueKey(column.id),
                               column: column,
                               config: widget.config,
+                              provider: effectiveProvider,
                             );
                           }),
                           const SizedBox(width: 300),
@@ -198,10 +208,12 @@ class _KanbanBoardViewState extends ConsumerState<KanbanBoardView> {
               child: Material(
                 elevation: 16,
                 shadowColor: Colors.black26,
-                child: TaskDetailSheet(
-                  task: boardState.selectedTask!,
-                  columnId: boardState.selectedTaskColumnId!,
-                ),
+                child: boardState.selectedTask is DefaultKanbanTask
+                    ? TaskDetailSheet(
+                        task: boardState.selectedTask as DefaultKanbanTask,
+                        columnId: boardState.selectedTaskColumnId!,
+                      )
+                    : const Center(child: Text("Custom detail sheet needed")),
               ),
             ),
         ],
@@ -209,7 +221,11 @@ class _KanbanBoardViewState extends ConsumerState<KanbanBoardView> {
     );
   }
 
-  void _showAddColumnDialog(BuildContext context, WidgetRef ref) {
+  void _showAddColumnDialog(
+    BuildContext context,
+    WidgetRef ref,
+    StateNotifierProvider<KanbanBoardNotifier<T>, KanbanBoardState<T>> provider,
+  ) {
     final controller = TextEditingController();
     int selectedColor = 0xFF9E9E9E; // Default grey
 
@@ -305,7 +321,7 @@ class _KanbanBoardViewState extends ConsumerState<KanbanBoardView> {
               onPressed: () {
                 if (controller.text.isNotEmpty) {
                   ref
-                      .read(kanbanBoardProvider.notifier)
+                      .read(provider.notifier)
                       .addColumn(controller.text, selectedColor);
                   Navigator.pop(context);
                 }

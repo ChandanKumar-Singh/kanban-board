@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
-import '../models/models.dart';
+part of '../index.dart';
 
-class KanbanTaskCard extends StatelessWidget {
-  final KanbanTask task;
+class KanbanTaskCard<T extends KanbanTask> extends StatelessWidget {
+  final T task;
   final VoidCallback? onTap;
   final bool isDragging;
 
@@ -15,6 +14,33 @@ class KanbanTaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (task is! DefaultKanbanTask) {
+      return GestureDetector(
+        onTap: onTap,
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+            border: isDragging
+                ? Border.all(color: Colors.blue, width: 2)
+                : null,
+          ),
+          child: Text('Custom Task: ${task.id}'),
+        ),
+      );
+    }
+
+    final t = task as DefaultKanbanTask;
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
       decoration: BoxDecoration(
@@ -63,7 +89,7 @@ class KanbanTaskCard extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          task.title,
+                          t.title,
                           style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 15,
@@ -72,13 +98,13 @@ class KanbanTaskCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      _buildPriorityIndicator(task.priority),
+                      _buildPriorityIndicator(t.priority),
                     ],
                   ),
                   const SizedBox(height: 10),
-                  if (task.description.isNotEmpty)
+                  if (t.description.isNotEmpty)
                     Text(
-                      task.description,
+                      t.description,
                       style: TextStyle(
                         color: const Color(0xFF9094A6),
                         fontSize: 13,
@@ -87,12 +113,12 @@ class KanbanTaskCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  if (task.tags.isNotEmpty) ...[
+                  if (t.tags.isNotEmpty) ...[
                     const SizedBox(height: 14),
                     Wrap(
                       spacing: 6,
                       runSpacing: 6,
-                      children: task.tags.map((tag) => _buildTag(tag)).toList(),
+                      children: t.tags.map((tag) => _buildTag(tag)).toList(),
                     ),
                   ],
                   const SizedBox(height: 16),
@@ -101,10 +127,10 @@ class KanbanTaskCard extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          _buildAvatar(task.assignee),
+                          _buildAvatar(t.assignee),
                           const SizedBox(width: 8),
                           Text(
-                            task.assignee,
+                            t.assignee,
                             style: const TextStyle(
                               fontSize: 12,
                               color: Color(0xFF4F5D75),
@@ -115,13 +141,15 @@ class KanbanTaskCard extends StatelessWidget {
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF4F7F9),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          _formatDate(task.dueDate),
+                          _formatDate(t.dueDate),
                           style: const TextStyle(
                             fontSize: 10,
                             color: Color(0xFF9094A6),
