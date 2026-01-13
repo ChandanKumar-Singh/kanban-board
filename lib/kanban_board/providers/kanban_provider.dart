@@ -189,43 +189,41 @@ class KanbanBoardNotifier<T extends KanbanTask>
     final columnIndex = state.columns.indexWhere((c) => c.id == columnId);
     if (columnIndex == -1 || state.columns[columnIndex].isLoading) return;
 
+    final column = state.columns[columnIndex];
+    if (!column.hasMore) return;
+
     final newColumns = List<KanbanColumn<T>>.from(state.columns);
     newColumns[columnIndex] = newColumns[columnIndex].copyWith(isLoading: true);
     state = state.copyWith(columns: newColumns);
 
-    // This is hardcoded for DemoKanbanRepository/DefaultKanbanTask.
-    // In a real generic app, loading more should be handled by the repository.
-    final moreTasks = <T>[];
-    if (T == DefaultKanbanTask) {
-      final tasks = state.columns.fold(
-        <DefaultKanbanTask>[],
-        (prev, col) => [...prev, ...(col.tasks as List<DefaultKanbanTask>)],
+    try {
+      final moreTasks = await _repository.loadMore(
+        columnId,
+        column.tasks.length,
       );
-      moreTasks.addAll(
-        List.generate(
-          4,
-          (i) =>
-              DefaultKanbanTask(
-                    title: 'More Task ${tasks.length + 1 + i}',
-                    description: 'Dynamically loaded',
-                    dueDate: DateTime.now().add(const Duration(days: 3)),
-                  )
-                  as T,
-        ).toList(),
-      );
+
+      final updatedColumns = List<KanbanColumn<T>>.from(state.columns);
+      // Re-find in case state changed during await
+      final idx = updatedColumns.indexWhere((c) => c.id == columnId);
+      if (idx != -1) {
+        final col = updatedColumns[idx];
+        updatedColumns[idx] = col.copyWith(
+          tasks: [...col.tasks, ...moreTasks],
+          isLoading: false,
+          hasMore:
+              moreTasks.isNotEmpty &&
+              col.tasks.length + moreTasks.length < 50, // Example limit
+        );
+        state = state.copyWith(columns: updatedColumns);
+      }
+    } catch (e) {
+      final errorColumns = List<KanbanColumn<T>>.from(state.columns);
+      final idx = errorColumns.indexWhere((c) => c.id == columnId);
+      if (idx != -1) {
+        errorColumns[idx] = errorColumns[idx].copyWith(isLoading: false);
+        state = state.copyWith(columns: errorColumns);
+      }
     }
-
-    await Future.delayed(const Duration(seconds: 1));
-
-    final column = state.columns[columnIndex];
-    final updatedColumns = List<KanbanColumn<T>>.from(state.columns);
-    updatedColumns[columnIndex] = column.copyWith(
-      tasks: [...column.tasks, ...moreTasks],
-      isLoading: false,
-      hasMore: column.tasks.length < 10,
-    );
-
-    state = state.copyWith(columns: updatedColumns);
   }
 
   void moveTask(

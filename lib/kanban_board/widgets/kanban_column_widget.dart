@@ -34,10 +34,29 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent -
+            widget.config.autoLoadThreshold) {
+      if (widget.column.hasMore && !widget.column.isLoading) {
+        final effectiveProvider =
+            widget.provider ??
+            (kanbanBoardProvider
+                as StateNotifierProvider<
+                  KanbanBoardNotifier<T>,
+                  KanbanBoardState<T>
+                >);
+        ref.read(effectiveProvider.notifier).loadMore(widget.column.id);
+      }
+    }
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _scrollTimer?.cancel();
     super.dispose();
@@ -262,7 +281,7 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
                             return true;
                           },
                           builder: (context, _, __) =>
-                              const SizedBox(height: 100),
+                              const SizedBox(height: 10),
                         );
                       }
 
@@ -321,8 +340,16 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
     WidgetRef ref,
     StateNotifierProvider<KanbanBoardNotifier<T>, KanbanBoardState<T>> provider,
   ) {
+    if (widget.config.loadMoreBuilder != null) {
+      return widget.config.loadMoreBuilder!(
+        context,
+        widget.column,
+        ref.watch(provider),
+      );
+    }
+
     if (widget.column.isLoading) {
-      return const KanbanCardSkeleton();
+      return KanbanCardSkeleton();
     }
     return Padding(
       padding: const EdgeInsets.all(8.0),

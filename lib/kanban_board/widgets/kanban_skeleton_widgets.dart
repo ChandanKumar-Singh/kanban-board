@@ -72,7 +72,7 @@ class KanbanColumnSkeleton extends StatelessWidget {
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: 5,
-              itemBuilder: (context, index) => const KanbanCardSkeleton(),
+              itemBuilder: (context, index) => KanbanCardSkeleton(),
             ),
           ),
         ],

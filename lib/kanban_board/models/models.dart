@@ -101,6 +101,12 @@ typedef KanbanColumnHeaderBuilder<T extends KanbanTask> =
       KanbanColumn<T> column,
       int taskCount,
     );
+typedef KanbanLoadMoreBuilder<T extends KanbanTask> =
+    Widget Function(
+      BuildContext context,
+      KanbanColumn<T> column,
+      KanbanBoardState<T> state,
+    );
 
 class KanbanConfig<T extends KanbanTask> {
   final double cardElevation;
@@ -114,6 +120,7 @@ class KanbanConfig<T extends KanbanTask> {
   final KanbanCardBuilder<T>? cardBuilder;
   final KanbanColumnHeaderBuilder<T>? columnHeaderBuilder;
   final KanbanFilterCallback<T>? onFilter;
+  final KanbanLoadMoreBuilder<T>? loadMoreBuilder;
 
   // Interaction hooks
   final Function(T)? onTaskTap;
@@ -121,6 +128,9 @@ class KanbanConfig<T extends KanbanTask> {
   final Function(String, String)? onTaskDeleted;
   final Function(KanbanColumn<T>)? onColumnCreated;
   final Function(String)? onColumnDeleted;
+
+  // Infinite Scroll settings
+  final double autoLoadThreshold; // Distance from bottom to trigger load
 
   const KanbanConfig({
     this.cardElevation = 2,
@@ -137,5 +147,7 @@ class KanbanConfig<T extends KanbanTask> {
     this.onTaskDeleted,
     this.onColumnCreated,
     this.onColumnDeleted,
+    this.loadMoreBuilder,
+    this.autoLoadThreshold = 100,
   });
 }

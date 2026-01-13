@@ -11,6 +11,9 @@ abstract class KanbanRepository<T extends KanbanTask> {
     String toColumnId,
     int toIndex,
   );
+  Future<void> updateTask(String columnId, T task);
+  Future<void> deleteTask(String columnId, String taskId);
+  Future<List<T>> loadMore(String columnId, int currentLength);
 }
 
 class KanbanBoardData<T extends KanbanTask> {
@@ -211,5 +214,31 @@ class DemoKanbanRepository implements KanbanRepository<DefaultKanbanTask> {
     int toIndex,
   ) async {
     // Sync with remote
+  }
+
+  @override
+  Future<void> updateTask(String columnId, DefaultKanbanTask task) async {
+    // Sync with remote
+  }
+
+  @override
+  Future<void> deleteTask(String columnId, String taskId) async {
+    // Sync with remote
+  }
+
+  @override
+  Future<List<DefaultKanbanTask>> loadMore(
+    String columnId,
+    int currentLength,
+  ) async {
+    await Future.delayed(const Duration(seconds: 1));
+    return List.generate(
+      4,
+      (i) => DefaultKanbanTask(
+        title: 'More Task ${currentLength + 1 + i}',
+        description: 'Dynamically loaded',
+        dueDate: DateTime.now().add(const Duration(days: 3)),
+      ),
+    );
   }
 }
