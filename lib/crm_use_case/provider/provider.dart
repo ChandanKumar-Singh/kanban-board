@@ -204,8 +204,19 @@ class CRMBoardNotifier extends KanbanBoardNotifier<CRMTask> {
   void updateDateFilter(String filter, {DateTimeRange? range}) {
     _dateFilter = filter;
     _customRange = range;
-    // Trigger a state update to re-run filtering (calculated at state setter in base class)
-    state = state.copyWith();
+    state = state.copyWith(); // Trigger re-filter
+  }
+
+  void addNewTask(String columnId, CRMTask task) {
+    final columnIndex = state.columns.indexWhere((c) => c.id == columnId);
+    if (columnIndex == -1) return;
+
+    final List<KanbanColumn<CRMTask>> updatedColumns = List.from(state.columns);
+    final column = updatedColumns[columnIndex];
+    final updatedTasks = [task, ...column.tasks];
+
+    updatedColumns[columnIndex] = column.copyWith(tasks: updatedTasks);
+    state = state.copyWith(columns: updatedColumns);
   }
 }
 

@@ -7,3 +7,4 @@ import '../kanban_board/index.dart';
 part 'models/crm_task.dart';
 part 'provider/provider.dart';
 part 'views/crm_screen.dart';
+part 'views/add_lead_screen.dart';

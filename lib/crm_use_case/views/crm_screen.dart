@@ -23,7 +23,7 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: _buildAppBar(context),
       body: Column(
         children: [
@@ -46,7 +46,7 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
                 ),
                 cardProps: KanbanCardProps(
                   padding: EdgeInsets.zero,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                   backgroundColor: Colors.white,
                   builder: (context, task, isDragging) =>
                       _buildCRMCard(context, task, isDragging),
@@ -56,10 +56,32 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: const Color(0xFF1B85BC),
-        child: const Icon(Icons.add, color: Colors.white, size: 32),
+      floatingActionButton: Container(
+        height: 64,
+        width: 64,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF1B85BC), Color(0xFF00CBA9)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF1B85BC).withOpacity(0.3),
+              blurRadius: 15,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: RawMaterialButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddLeadScreen()),
+          ),
+          shape: const CircleBorder(),
+          child: const Icon(Icons.add_rounded, color: Colors.white, size: 36),
+        ),
       ),
     );
   }
@@ -67,10 +89,15 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
       elevation: 0,
       leading: _isSearchExpanded
           ? IconButton(
-              icon: const Icon(Icons.arrow_back, color: Color(0xFF475569)),
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: Color(0xFF0F172A),
+                size: 18,
+              ),
               onPressed: () {
                 setState(() {
                   _isSearchExpanded = false;
@@ -80,23 +107,37 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
               },
             )
           : IconButton(
-              icon: const Icon(Icons.arrow_back, color: Color(0xFF475569)),
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: Color(0xFF0F172A),
+                size: 18,
+              ),
               onPressed: () => Navigator.of(context).pop(),
             ),
       title: _isSearchExpanded
           ? TextField(
               controller: _searchController,
               focusNode: _searchFocusNode,
+              style: const TextStyle(
+                color: Color(0xFF0F172A),
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
               decoration: InputDecoration(
                 hintText: 'Search leads...',
                 hintStyle: const TextStyle(
                   color: Color(0xFF94A3B8),
                   fontSize: 16,
+                  fontWeight: FontWeight.w500,
                 ),
                 border: InputBorder.none,
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, size: 20),
+                        icon: const Icon(
+                          Icons.cancel_rounded,
+                          size: 18,
+                          color: Color(0xFF94A3B8),
+                        ),
                         onPressed: () {
                           _searchController.clear();
                           ref
@@ -117,18 +158,32 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
                 const Text(
                   'ezupp',
                   style: TextStyle(
-                    color: Color(0xFF1B85BC),
+                    color: Color(0xFF0F172A),
                     fontWeight: FontWeight.w900,
-                    fontSize: 24,
+                    fontSize: 26,
+                    letterSpacing: -1,
                   ),
                 ),
-                const SizedBox(width: 4),
-                const Text(
-                  '| CRM',
-                  style: TextStyle(
-                    color: Color(0xFF00CBA9),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 18,
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF1B85BC), Color(0xFF00CBA9)],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'CRM',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 11,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
               ],
@@ -136,22 +191,46 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
       actions: [
         if (!_isSearchExpanded)
           IconButton(
-            icon: const Icon(Icons.search, color: Color(0xFF475569)),
+            icon: const Icon(Icons.search_rounded, color: Color(0xFF475569)),
             onPressed: () {
               setState(() => _isSearchExpanded = true);
               _searchFocusNode.requestFocus();
             },
           ),
-        IconButton(
-          icon: const Icon(Icons.notifications_none, color: Color(0xFF475569)),
-          onPressed: () {},
+        Stack(
+          children: [
+            IconButton(
+              icon: const Icon(
+                Icons.notifications_none_rounded,
+                color: Color(0xFF475569),
+              ),
+              onPressed: () {},
+            ),
+            Positioned(
+              right: 12,
+              top: 12,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+              ),
+            ),
+          ],
         ),
         const Padding(
-          padding: EdgeInsets.only(right: 16.0),
+          padding: EdgeInsets.only(right: 16.0, left: 4),
           child: CircleAvatar(
-            radius: 16,
-            backgroundColor: Color(0xFFE0F2FE),
-            child: Icon(Icons.person, size: 20, color: Color(0xFF1B85BC)),
+            radius: 18,
+            backgroundColor: Color(0xFFF1F5F9),
+            child: Icon(
+              Icons.person_rounded,
+              size: 22,
+              color: Color(0xFF64748B),
+            ),
           ),
         ),
       ],
@@ -160,13 +239,20 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
 
   Widget _buildTopFilters(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(color: const Color(0xFFF1F5F9), width: 1.5),
+        ),
+      ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
             _FilterChip(
               label: 'Today',
+              icon: Icons.today_rounded,
               isSelected: _selectedFilter == 'Today',
               onTap: () {
                 setState(() => _selectedFilter = 'Today');
@@ -176,6 +262,7 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
             const SizedBox(width: 8),
             _FilterChip(
               label: 'Yesterday',
+              icon: Icons.history_rounded,
               isSelected: _selectedFilter == 'Yesterday',
               onTap: () {
                 setState(() => _selectedFilter = 'Yesterday');
@@ -187,6 +274,7 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
             const SizedBox(width: 8),
             _FilterChip(
               label: 'This Month',
+              icon: Icons.calendar_month_rounded,
               isSelected: _selectedFilter == 'This Month',
               onTap: () {
                 setState(() => _selectedFilter = 'This Month');
@@ -201,12 +289,13 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
                 if (_selectedFilter == 'Custom') {
                   final range = ref.read(crmBoardProvider.notifier).customRange;
                   if (range != null) {
-                    final df = DateFormat('dd MMM yyyy');
+                    final df = DateFormat('dd MMM');
                     return '${df.format(range.start)} - ${df.format(range.end)}';
                   }
                 }
-                return 'Select Date Range';
+                return 'Select Range';
               })(),
+              icon: Icons.date_range_rounded,
               isSelected: _selectedFilter == 'Custom',
               onTap: () async {
                 final currentRange = ref
@@ -217,6 +306,23 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
                   firstDate: DateTime(2020),
                   lastDate: DateTime.now(),
                   initialDateRange: currentRange,
+                  builder: (context, child) {
+                    return Theme(
+                      data: Theme.of(context).copyWith(
+                        colorScheme: const ColorScheme.light(
+                          primary: Color(0xFF0F172A),
+                          onPrimary: Colors.white,
+                          onSurface: Color(0xFF0F172A),
+                        ),
+                        textButtonTheme: TextButtonThemeData(
+                          style: TextButton.styleFrom(
+                            foregroundColor: const Color(0xFF0F172A),
+                          ),
+                        ),
+                      ),
+                      child: child!,
+                    );
+                  },
                 );
                 if (range != null) {
                   setState(() => _selectedFilter = 'Custom');
@@ -238,33 +344,61 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
     int count,
   ) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 16, 4, 16),
+      padding: const EdgeInsets.fromLTRB(4, 20, 12, 12),
       child: Row(
         children: [
+          Container(
+            width: 4,
+            height: 24,
+            decoration: BoxDecoration(
+              color: Color(column.colorValue),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(width: 12),
           Text(
-            column.title,
+            column.title.toUpperCase(),
             style: const TextStyle(
-              fontSize: 18,
+              fontSize: 14,
               fontWeight: FontWeight.w800,
-              color: Color(0xFF1E293B),
+              color: Color(0xFF0F172A),
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              '$count',
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF64748B),
+              ),
             ),
           ),
           const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.refresh, size: 18, color: Color(0xFF64748B)),
-            onPressed: () =>
-                ref.read(crmBoardProvider.notifier).refreshColumn(column.id),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            visualDensity: VisualDensity.compact,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            '($count)',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF64748B),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: const Color(0xFFF1F5F9)),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: IconButton(
+              icon: const Icon(
+                Icons.refresh_rounded,
+                size: 16,
+                color: Color(0xFF64748B),
+              ),
+              onPressed: () =>
+                  ref.read(crmBoardProvider.notifier).refreshColumn(column.id),
+              padding: const EdgeInsets.all(6),
+              constraints: const BoxConstraints(),
+              visualDensity: VisualDensity.compact,
             ),
           ),
         ],
@@ -274,129 +408,196 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
 
   Widget _buildCRMCard(BuildContext context, CRMTask task, bool isDragging) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 2),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
+            color: const Color(0xFF0F172A).withOpacity(0.04),
+            blurRadius: 15,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    task.title,
-                    style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
-                ),
-                Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
-                const SizedBox(width: 4),
-                Text(
-                  task.timeAgo ?? '',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _buildIconRow(
-              Icons.add_circle,
-              task.serviceType ?? '',
-              const Color(0xFF64748B),
-            ),
-            const SizedBox(height: 8),
-            _buildIconRow(
-              Icons.location_on,
-              task.address ?? '',
-              const Color(0xFF64748B),
-            ),
-            const SizedBox(height: 16),
-            if (task.statusMessage != null)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF7ED),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.edit_note,
-                      color: Color(0xFFC2410C),
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        task.statusMessage!,
-                        style: const TextStyle(
-                          color: Color(0xFF9A3412),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
+            Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          task.title,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF0F172A),
+                            letterSpacing: -0.4,
+                          ),
                         ),
                       ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.access_time_rounded,
+                              size: 12,
+                              color: Color(0xFF64748B),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              task.timeAgo ?? '',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  _buildIconRow(
+                    Icons.layers_outlined,
+                    task.serviceType ?? 'General Service',
+                    const Color(0xFF475569),
+                  ),
+                  const SizedBox(height: 10),
+                  _buildIconRow(
+                    Icons.location_on_outlined,
+                    task.address ?? 'No Address Provided',
+                    const Color(0xFF475569),
+                  ),
+                  const SizedBox(height: 18),
+                  if (task.statusMessage != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFF1F5F9)),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE2E8F0),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.info_outline_rounded,
+                              color: Color(0xFF475569),
+                              size: 14,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              task.statusMessage!,
+                              style: const TextStyle(
+                                color: Color(0xFF334155),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: Color(0xFF94A3B8),
+                            size: 20,
+                          ),
+                        ],
+                      ),
                     ),
-                    const Icon(
-                      Icons.keyboard_arrow_down,
-                      color: Color(0xFFC2410C),
-                      size: 18,
-                    ),
-                  ],
-                ),
+                  const SizedBox(height: 18),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: task.crmTags
+                        .map((tag) => _buildTag(tag))
+                        .toList(),
+                  ),
+                ],
               ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              children: task.crmTags.map((tag) => _buildTag(tag)).toList(),
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                _buildCircleIconButton(Icons.block, Colors.red),
-                const SizedBox(width: 12),
-                _buildCircleIconButton(
-                  Icons.chat_bubble_outline,
-                  const Color(0xFF1E293B),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'CALL',
-                        style: TextStyle(
-                          color: Color(0xFF1E293B),
-                          fontWeight: FontWeight.w800,
-                          fontSize: 14,
-                          letterSpacing: 1.1,
+            Container(height: 1, color: const Color(0xFFF1F5F9)),
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  _buildCircleIconButton(
+                    Icons.block_flipped,
+                    const Color(0xFFEF4444),
+                  ),
+                  const SizedBox(width: 10),
+                  _buildCircleIconButton(
+                    Icons.chat_bubble_outline_rounded,
+                    const Color(0xFF0F172A),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Container(
+                      height: 48,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0F172A), Color(0xFF334155)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF0F172A).withOpacity(0.15),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {},
+                          borderRadius: BorderRadius.circular(14),
+                          child: const Center(
+                            child: Text(
+                              'CALL NOW',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -408,13 +609,18 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: color.withOpacity(0.6)),
-        const SizedBox(width: 8),
+        Icon(icon, size: 16, color: color.withOpacity(0.4)),
+        const SizedBox(width: 10),
         Expanded(
           child: Text(
             text,
-            style: TextStyle(fontSize: 13, color: color, height: 1.4),
-            maxLines: 2,
+            style: TextStyle(
+              fontSize: 13,
+              color: color,
+              height: 1.3,
+              fontWeight: FontWeight.w500,
+            ),
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -423,20 +629,24 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
   }
 
   Widget _buildTag(String label) {
-    final isWhite = label == 'Today' || label == '0-5 min';
+    final isPriority =
+        label == 'Today' || label == '0-5 min' || label == 'High';
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: isWhite ? Colors.white : const Color(0xFFF1F5F9),
-        border: isWhite ? Border.all(color: const Color(0xFF1E293B)) : null,
-        borderRadius: BorderRadius.circular(20),
+        color: isPriority ? const Color(0xFFF1F5F9) : Colors.white,
+        border: Border.all(
+          color: isPriority ? const Color(0xFFE2E8F0) : const Color(0xFFF1F5F9),
+        ),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
         label,
         style: TextStyle(
           fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: isWhite ? const Color(0xFF1E293B) : const Color(0xFF64748B),
+          fontWeight: FontWeight.w700,
+          color: isPriority ? const Color(0xFF0F172A) : const Color(0xFF64748B),
+          letterSpacing: 0.2,
         ),
       ),
     );
@@ -444,24 +654,35 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
 
   Widget _buildCircleIconButton(IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(8),
+      width: 48,
+      height: 48,
       decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
         shape: BoxShape.circle,
       ),
-      child: Icon(icon, color: color, size: 20),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {},
+          customBorder: const CircleBorder(),
+          child: Icon(icon, color: color, size: 20),
+        ),
+      ),
     );
   }
 }
 
 class _FilterChip extends StatelessWidget {
   final String label;
+  final IconData? icon;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _FilterChip({
     required this.label,
     required this.onTap,
+    this.icon,
     this.isSelected = false,
   });
 
@@ -469,24 +690,49 @@ class _FilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFE0F2FE) : const Color(0xFFF1F5F9),
-          borderRadius: BorderRadius.circular(20),
-          border: isSelected
-              ? Border.all(color: const Color(0xFF1B85BC).withOpacity(0.2))
+          color: isSelected ? const Color(0xFF0F172A) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFF0F172A)
+                : const Color(0xFFE2E8F0),
+            width: 1.5,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF0F172A).withOpacity(0.12),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
               : null,
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: isSelected
-                ? const Color(0xFF1B85BC)
-                : const Color(0xFF64748B),
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: 16,
+                color: isSelected ? Colors.white : const Color(0xFF64748B),
+              ),
+              const SizedBox(width: 8),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: isSelected ? Colors.white : const Color(0xFF475569),
+                letterSpacing: 0.1,
+              ),
+            ),
+          ],
         ),
       ),
     );
