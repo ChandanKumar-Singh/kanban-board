@@ -21,71 +21,86 @@ class _KanbanScreenState extends State<KanbanScreen> {
               provider: customKanbanBoardProvider,
               config: KanbanConfig<CustomKanbanTask>(
                 columnProps: KanbanColumnProps(
-                  width: 280,
-                  borderRadius: BorderRadius.circular(16),
-                  // Custom Load More Builder
-                  loadMoreBuilder: (context, column, state) {
-                    if (column.isLoading) {
-                      return const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Center(
-                          child: SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        ),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                  // Custom Column Header Builder
+                  width: 320,
+                  borderRadius: BorderRadius.circular(20),
+                  backgroundColor: const Color(0xFFF8FAFC),
+                  cardSpacing: 12.0,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 16,
+                  ),
+                  headerPadding: const EdgeInsets.fromLTRB(20, 20, 12, 16),
+                  headerDecoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                  ),
                   headerBuilder: (context, column, count) {
+                    final color = Color(column.colorValue);
                     return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Color(column.colorValue).withOpacity(0.1),
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(16),
+                      padding: const EdgeInsets.fromLTRB(20, 20, 12, 16),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(20),
                         ),
                       ),
                       child: Row(
                         children: [
                           Container(
-                            width: 12,
-                            height: 12,
+                            width: 8,
+                            height: 24,
                             decoration: BoxDecoration(
-                              color: Color(column.colorValue),
-                              shape: BoxShape.circle,
+                              color: color,
+                              borderRadius: BorderRadius.circular(4),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: color.withOpacity(0.4),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 10),
-                          Text(
-                            column.title,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 14,
-                              color: Color(0xFF2D3142),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              column.title.toUpperCase(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13,
+                                color: Color(0xFF475569),
+                                letterSpacing: 1.2,
+                              ),
                             ),
                           ),
-                          const Spacer(),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
+                              horizontal: 10,
+                              vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Color(column.colorValue).withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(20),
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
                               '$count',
-                              style: TextStyle(
-                                color: Color(column.colorValue),
-                                fontWeight: FontWeight.bold,
+                              style: const TextStyle(
+                                color: Color(0xFF64748B),
+                                fontWeight: FontWeight.w700,
                                 fontSize: 11,
                               ),
                             ),
+                          ),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.more_horiz,
+                              color: Color(0xFF94A3B8),
+                              size: 20,
+                            ),
+                            onPressed: () {},
                           ),
                         ],
                       ),
@@ -93,97 +108,156 @@ class _KanbanScreenState extends State<KanbanScreen> {
                   },
                 ),
                 cardProps: KanbanCardProps(
-                  // Custom Card Builder
+                  padding: const EdgeInsets.all(16),
+                  borderRadius: BorderRadius.circular(16),
+                  backgroundColor: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F172A).withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                    BoxShadow(
+                      color: const Color(0xFF0F172A).withOpacity(0.02),
+                      blurRadius: 2,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
                   builder: (context, task, isDragging) {
-                    return Material(
-                      color: Colors.transparent,
+                    final isUrgent = task.priority == 3;
+                    return MouseRegion(
+                      cursor: SystemMouseCursors.click,
                       child: Container(
-                        margin: const EdgeInsets.symmetric(
-                          vertical: 5,
-                          horizontal: 7,
-                        ),
-                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isUrgent
+                                ? const Color(0xFFEF4444).withOpacity(0.2)
+                                : Colors.transparent,
+                            width: 1.5,
+                          ),
                           boxShadow: isDragging
                               ? [
                                   BoxShadow(
-                                    color: Colors.black26,
-                                    blurRadius: 10,
-                                    offset: Offset(0, 5),
+                                    color: const Color(
+                                      0xFF6366F1,
+                                    ).withOpacity(0.2),
+                                    blurRadius: 25,
+                                    offset: const Offset(0, 12),
+                                    spreadRadius: 2,
                                   ),
                                 ]
                               : [
                                   BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 4,
-                                    offset: Offset(0, 2),
+                                    color: const Color(
+                                      0xFF0F172A,
+                                    ).withOpacity(0.04),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
                                   ),
                                 ],
-                          border: Border.all(
-                            color: task.priority == 3
-                                ? Colors.red.withOpacity(0.3)
-                                : Colors.transparent,
-                            width: 2,
-                          ),
                         ),
+                        padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
+                                if (isUrgent)
+                                  Container(
+                                    margin: const EdgeInsets.only(right: 8),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFEE2E2),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Text(
+                                      'URGENT',
+                                      style: TextStyle(
+                                        color: Color(0xFFEF4444),
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ),
                                 Expanded(
                                   child: Text(
                                     task.title,
                                     style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w700,
                                       fontSize: 15,
+                                      color: Color(0xFF1E293B),
+                                      letterSpacing: -0.3,
                                     ),
                                   ),
                                 ),
-                                if (task.priority == 3)
-                                  const Icon(
-                                    Icons.warning_amber_rounded,
-                                    color: Colors.red,
-                                    size: 18,
-                                  ),
                               ],
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 8),
                             Text(
                               task.subtitle,
-                              style: TextStyle(
-                                color: Colors.grey[600],
+                              style: const TextStyle(
+                                color: Color(0xFF64748B),
                                 fontSize: 13,
+                                height: 1.5,
                               ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 4,
-                              children: task.labels
-                                  .map(
-                                    (label) => Container(
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Wrap(
+                                  spacing: 6,
+                                  children: task.labels.take(2).map((label) {
+                                    return Container(
                                       padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
+                                        horizontal: 8,
+                                        vertical: 4,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.blue.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(4),
+                                        color: const Color(0xFFEEF2FF),
+                                        borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Text(
                                         label,
                                         style: const TextStyle(
-                                          color: Colors.blue,
+                                          color: Color(0xFF6366F1),
                                           fontSize: 10,
-                                          fontWeight: FontWeight.bold,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
+                                    );
+                                  }).toList(),
+                                ),
+                                Container(
+                                  width: 28,
+                                  height: 28,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Color(0xFF6366F1),
+                                        Color(0xFF818CF8),
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
                                     ),
-                                  )
-                                  .toList(),
+                                  ),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.person,
+                                      color: Colors.white,
+                                      size: 14,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -206,7 +280,11 @@ class _KanbanScreenState extends State<KanbanScreen> {
                 },
                 onTaskTap: (task) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Tapped on ${task.title}')),
+                    SnackBar(
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: const Color(0xFF1E293B),
+                      content: Text('Focusing on: ${task.title}'),
+                    ),
                   );
                 },
               ),

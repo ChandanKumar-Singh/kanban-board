@@ -277,12 +277,14 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
                 builder: (context, candidateData, rejectedData) {
                   return ListView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
                     itemCount:
                         filteredTasks.length +
                         (widget.column.hasMore ? 1 : 0) +
                         (isCurrentColumnHovered ? 1 : 0) +
                         1, // Extra target at bottom
+                    padding:
+                        widget.config.columnProps.padding ??
+                        const EdgeInsets.symmetric(vertical: 8),
                     itemBuilder: (context, index) {
                       // 1. Extra transparent target at the bottom for easy dropping at end
                       if (index ==
@@ -335,12 +337,17 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
                       }
 
                       final task = filteredTasks[taskIndex];
-                      return _buildDraggableTask(
-                        task,
-                        taskIndex,
-                        ref,
-                        effectiveProvider,
-                        isCurrentColumnHovered,
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: widget.config.columnProps.cardSpacing,
+                        ),
+                        child: _buildDraggableTask(
+                          task,
+                          taskIndex,
+                          ref,
+                          effectiveProvider,
+                          isCurrentColumnHovered,
+                        ),
                       );
                     },
                   );
@@ -394,14 +401,21 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Color(widget.column.colorValue),
-        borderRadius:
-            (widget.config.columnProps.borderRadius ??
-                    const BorderRadius.vertical(top: Radius.circular(12)))
-                .copyWith(bottomLeft: Radius.zero, bottomRight: Radius.zero),
-      ),
+      padding:
+          widget.config.columnProps.headerPadding ??
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration:
+          widget.config.columnProps.headerDecoration ??
+          BoxDecoration(
+            color: Color(widget.column.colorValue),
+            borderRadius:
+                (widget.config.columnProps.borderRadius ??
+                        const BorderRadius.vertical(top: Radius.circular(12)))
+                    .copyWith(
+                      bottomLeft: Radius.zero,
+                      bottomRight: Radius.zero,
+                    ),
+          ),
       child: Row(
         children: [
           Expanded(
@@ -418,17 +432,23 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
             ),
           ),
           const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
+          const SizedBox(width: 8),
+          if (widget.config.columnProps.showTaskCount)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                '$displayCount',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-            child: Text(
-              '$displayCount',
-              style: const TextStyle(color: Colors.white, fontSize: 12),
-            ),
-          ),
           const SizedBox(width: 8),
           Material(
             color: Colors.transparent,

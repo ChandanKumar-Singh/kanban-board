@@ -119,6 +119,10 @@ class KanbanColumnProps<T extends KanbanTask> {
   final Color? backgroundColor;
   final BorderRadius? borderRadius;
   final TextStyle? titleStyle;
+  final Decoration? headerDecoration;
+  final EdgeInsets? headerPadding;
+  final double cardSpacing;
+  final bool showTaskCount;
 
   const KanbanColumnProps({
     this.width = 300,
@@ -130,6 +134,10 @@ class KanbanColumnProps<T extends KanbanTask> {
     this.backgroundColor,
     this.borderRadius,
     this.titleStyle,
+    this.headerDecoration,
+    this.headerPadding,
+    this.cardSpacing = 8.0,
+    this.showTaskCount = true,
   });
 }
 
@@ -137,13 +145,21 @@ class KanbanCardProps<T extends KanbanTask> {
   final KanbanCardBuilder<T>? builder;
   final double elevation;
   final EdgeInsets margin;
+  final EdgeInsets padding;
   final BorderRadius borderRadius;
+  final Color? backgroundColor;
+  final List<BoxShadow>? boxShadow;
+  final BorderSide? borderSide;
 
   const KanbanCardProps({
     this.builder,
     this.elevation = 2,
     this.margin = const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+    this.padding = const EdgeInsets.all(12),
     this.borderRadius = const BorderRadius.all(Radius.circular(12)),
+    this.backgroundColor,
+    this.boxShadow,
+    this.borderSide,
   });
 }
 

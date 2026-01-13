@@ -24,20 +24,24 @@ class KanbanTaskCard<T extends KanbanTask> extends StatelessWidget {
           onTap: onTap,
           child: Container(
             margin: props.margin,
-            padding: const EdgeInsets.all(12),
+            padding: props.padding,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: props.backgroundColor ?? Colors.white,
               borderRadius: props.borderRadius,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              boxShadow:
+                  props.boxShadow ??
+                  [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
               border: isDragging
                   ? Border.all(color: Colors.blue, width: 2)
-                  : null,
+                  : (props.borderSide != null
+                        ? Border.fromBorderSide(props.borderSide!)
+                        : null),
             ),
             child: Text('Custom Task: ${task.id}'),
           ),
@@ -50,7 +54,7 @@ class KanbanTaskCard<T extends KanbanTask> extends StatelessWidget {
     return Container(
       margin: props.margin,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: props.backgroundColor ?? Colors.white,
         borderRadius: props.borderRadius,
         boxShadow: isDragging
             ? [
@@ -67,18 +71,22 @@ class KanbanTaskCard<T extends KanbanTask> extends StatelessWidget {
                   offset: const Offset(0, 2),
                 ),
               ]
-            : [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.02),
-                  blurRadius: 2,
-                  offset: const Offset(0, 1),
-                ),
-              ],
+            : (props.boxShadow ??
+                  [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 2,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]),
+        border: props.borderSide != null
+            ? Border.fromBorderSide(props.borderSide!)
+            : null,
       ),
       child: ClipRRect(
         borderRadius: props.borderRadius,
@@ -87,7 +95,7 @@ class KanbanTaskCard<T extends KanbanTask> extends StatelessWidget {
           child: InkWell(
             onTap: onTap,
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: props.padding,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
