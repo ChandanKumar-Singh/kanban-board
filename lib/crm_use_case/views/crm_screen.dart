@@ -8,6 +8,18 @@ class CRMScreen extends ConsumerStatefulWidget {
 }
 
 class _CRMScreenState extends ConsumerState<CRMScreen> {
+  bool _isSearchExpanded = false;
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  String _selectedFilter = 'Today';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -15,11 +27,14 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
       appBar: _buildAppBar(context),
       body: Column(
         children: [
-          _buildTopFilters(context),
+          if (!_isSearchExpanded) _buildTopFilters(context),
           Expanded(
             child: KanbanBoardView<CRMTask>(
               provider: crmBoardProvider,
               config: KanbanConfig<CRMTask>(
+                showSearchBar: false,
+                showAddColumnButton: false,
+                showAppBar: false,
                 columnProps: KanbanColumnProps(
                   width: MediaQuery.of(context).size.width * 0.85,
                   borderRadius: BorderRadius.circular(16),
@@ -53,36 +68,80 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Color(0xFF475569)),
-        onPressed: () => Navigator.of(context).pop(),
-      ),
-      title: Row(
-        children: [
-          const Text(
-            'ezupp',
-            style: TextStyle(
-              color: Color(0xFF1B85BC),
-              fontWeight: FontWeight.w900,
-              fontSize: 24,
+      leading: _isSearchExpanded
+          ? IconButton(
+              icon: const Icon(Icons.arrow_back, color: Color(0xFF475569)),
+              onPressed: () {
+                setState(() {
+                  _isSearchExpanded = false;
+                  _searchController.clear();
+                });
+                ref.read(crmBoardProvider.notifier).updateSearchQuery('');
+              },
+            )
+          : IconButton(
+              icon: const Icon(Icons.arrow_back, color: Color(0xFF475569)),
+              onPressed: () => Navigator.of(context).pop(),
             ),
-          ),
-          const SizedBox(width: 4),
-          const Text(
-            '| CRM',
-            style: TextStyle(
-              color: Color(0xFF00CBA9),
-              fontWeight: FontWeight.w600,
-              fontSize: 18,
+      title: _isSearchExpanded
+          ? TextField(
+              controller: _searchController,
+              focusNode: _searchFocusNode,
+              decoration: InputDecoration(
+                hintText: 'Search leads...',
+                hintStyle: const TextStyle(
+                  color: Color(0xFF94A3B8),
+                  fontSize: 16,
+                ),
+                border: InputBorder.none,
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 20),
+                        onPressed: () {
+                          _searchController.clear();
+                          ref
+                              .read(crmBoardProvider.notifier)
+                              .updateSearchQuery('');
+                          setState(() {});
+                        },
+                      )
+                    : null,
+              ),
+              onChanged: (val) {
+                ref.read(crmBoardProvider.notifier).updateSearchQuery(val);
+                setState(() {});
+              },
+            )
+          : Row(
+              children: [
+                const Text(
+                  'ezupp',
+                  style: TextStyle(
+                    color: Color(0xFF1B85BC),
+                    fontWeight: FontWeight.w900,
+                    fontSize: 24,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Text(
+                  '| CRM',
+                  style: TextStyle(
+                    color: Color(0xFF00CBA9),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 18,
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.search, color: Color(0xFF475569)),
-          onPressed: () {},
-        ),
+        if (!_isSearchExpanded)
+          IconButton(
+            icon: const Icon(Icons.search, color: Color(0xFF475569)),
+            onPressed: () {
+              setState(() => _isSearchExpanded = true);
+              _searchFocusNode.requestFocus();
+            },
+          ),
         IconButton(
           icon: const Icon(Icons.notifications_none, color: Color(0xFF475569)),
           onPressed: () {},
@@ -102,14 +161,60 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
   Widget _buildTopFilters(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          _FilterChip(label: 'Today', isSelected: true),
-          const SizedBox(width: 8),
-          _FilterChip(label: 'This Month'),
-          const SizedBox(width: 8),
-          _FilterChip(label: 'Select Date Range'),
-        ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _FilterChip(
+              label: 'Today',
+              isSelected: _selectedFilter == 'Today',
+              onTap: () {
+                setState(() => _selectedFilter = 'Today');
+                ref.read(crmBoardProvider.notifier).updateDateFilter('Today');
+              },
+            ),
+            const SizedBox(width: 8),
+            _FilterChip(
+              label: 'Yesterday',
+              isSelected: _selectedFilter == 'Yesterday',
+              onTap: () {
+                setState(() => _selectedFilter = 'Yesterday');
+                ref
+                    .read(crmBoardProvider.notifier)
+                    .updateDateFilter('Yesterday');
+              },
+            ),
+            const SizedBox(width: 8),
+            _FilterChip(
+              label: 'This Month',
+              isSelected: _selectedFilter == 'This Month',
+              onTap: () {
+                setState(() => _selectedFilter = 'This Month');
+                ref
+                    .read(crmBoardProvider.notifier)
+                    .updateDateFilter('This Month');
+              },
+            ),
+            const SizedBox(width: 8),
+            _FilterChip(
+              label: 'Select Date Range',
+              isSelected: _selectedFilter == 'Custom',
+              onTap: () async {
+                final range = await showDateRangePicker(
+                  context: context,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime.now(),
+                );
+                if (range != null) {
+                  setState(() => _selectedFilter = 'Custom');
+                  ref
+                      .read(crmBoardProvider.notifier)
+                      .updateDateFilter('Custom', range: range);
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -330,26 +435,36 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
 class _FilterChip extends StatelessWidget {
   final String label;
   final bool isSelected;
+  final VoidCallback onTap;
 
-  const _FilterChip({required this.label, this.isSelected = false});
+  const _FilterChip({
+    required this.label,
+    required this.onTap,
+    this.isSelected = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFE0F2FE) : const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(20),
-        border: isSelected
-            ? Border.all(color: const Color(0xFF1B85BC).withOpacity(0.2))
-            : null,
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: isSelected ? const Color(0xFF1B85BC) : const Color(0xFF64748B),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFE0F2FE) : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(20),
+          border: isSelected
+              ? Border.all(color: const Color(0xFF1B85BC).withOpacity(0.2))
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: isSelected
+                ? const Color(0xFF1B85BC)
+                : const Color(0xFF64748B),
+          ),
         ),
       ),
     );

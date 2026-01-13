@@ -26,6 +26,15 @@ class CRMRepository extends KanbanRepository<CRMTask> {
         crmTags: ['Today', '0-5 min', 'CRM'],
         phone: '0987654321',
       ),
+      CRMTask(
+        title: 'Vikram Mehta',
+        serviceType: 'Physiotherapy',
+        address: 'H.No 45, Sector 4, Mansa Devi Complex, Panchkula',
+        timeAgo: '1 day',
+        statusMessage: 'Completed initial assessment',
+        crmTags: ['Yesterday', 'Finished'],
+        phone: '9876543210',
+      ),
     ],
     'lead': [
       CRMTask(
@@ -107,27 +116,55 @@ class CRMRepository extends KanbanRepository<CRMTask> {
 }
 
 // --- Provider ---
+// --- Provider ---
 final crmRepositoryProvider = Provider<CRMRepository>((ref) => CRMRepository());
 
+class CRMBoardNotifier extends KanbanBoardNotifier<CRMTask> {
+  String _dateFilter = 'Today';
+  DateTimeRange? _customRange;
+
+  CRMBoardNotifier(super.repository) {
+    onFilter = (tasks, query) {
+      // 1. Filter by Date
+      var filtered = tasks.where((t) {
+        if (_dateFilter == 'Today') {
+          return t.crmTags.contains('Today');
+        } else if (_dateFilter == 'Yesterday') {
+          return t.crmTags.contains('Yesterday');
+        } else if (_dateFilter == 'This Month') {
+          // Mock logic for month - in a real app we'd check actual date
+          return true;
+        } else if (_dateFilter == 'Custom' && _customRange != null) {
+          // Mock logic for custom range
+          return true;
+        }
+        return true;
+      }).toList();
+
+      // 2. Filter by Search Query
+      if (query.isEmpty) return filtered;
+      final q = query.toLowerCase();
+      return filtered
+          .where(
+            (t) =>
+                t.title.toLowerCase().contains(q) ||
+                (t.serviceType?.toLowerCase().contains(q) ?? false) ||
+                (t.address?.toLowerCase().contains(q) ?? false),
+          )
+          .toList();
+    };
+  }
+
+  void updateDateFilter(String filter, {DateTimeRange? range}) {
+    _dateFilter = filter;
+    _customRange = range;
+    // Trigger a state update to re-run filtering (calculated at state setter in base class)
+    state = state.copyWith();
+  }
+}
+
 final crmBoardProvider =
-    StateNotifierProvider<
-      KanbanBoardNotifier<CRMTask>,
-      KanbanBoardState<CRMTask>
-    >((ref) {
+    StateNotifierProvider<CRMBoardNotifier, KanbanBoardState<CRMTask>>((ref) {
       final repository = ref.watch(crmRepositoryProvider);
-      return KanbanBoardNotifier<CRMTask>(
-        repository,
-        onFilter: (tasks, query) {
-          if (query.isEmpty) return tasks;
-          final q = query.toLowerCase();
-          return tasks
-              .where(
-                (t) =>
-                    t.title.toLowerCase().contains(q) ||
-                    (t.serviceType?.toLowerCase().contains(q) ?? false) ||
-                    (t.address?.toLowerCase().contains(q) ?? false),
-              )
-              .toList();
-        },
-      );
+      return CRMBoardNotifier(repository);
     });

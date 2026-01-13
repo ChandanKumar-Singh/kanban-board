@@ -174,6 +174,10 @@ class KanbanConfig<T extends KanbanTask> {
   final Function(KanbanColumn<T>)? onColumnCreated;
   final Function(String)? onColumnDeleted;
 
+  final bool showSearchBar;
+  final bool showAddColumnButton;
+  final bool showAppBar;
+
   const KanbanConfig({
     this.columnProps = const KanbanColumnProps(),
     this.cardProps = const KanbanCardProps(),
@@ -184,5 +188,8 @@ class KanbanConfig<T extends KanbanTask> {
     this.onTaskDeleted,
     this.onColumnCreated,
     this.onColumnDeleted,
+    this.showSearchBar = true,
+    this.showAddColumnButton = true,
+    this.showAppBar = true,
   });
 }

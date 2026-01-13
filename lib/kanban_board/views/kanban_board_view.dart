@@ -82,83 +82,89 @@ class _KanbanBoardViewState<T extends KanbanTask>
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFC),
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        automaticallyImplyLeading: false,
-        title: Row(
-          children: [
-            if (boardState.availableBoards.length > 1)
-              DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: boardState.currentBoardId,
-                  items: boardState.availableBoards.map((board) {
-                    return DropdownMenuItem<String>(
-                      value: board.id,
-                      child: Text(
-                        board.name,
-                        style: const TextStyle(
-                          color: Color(0xFF2D3142),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
+      appBar: widget.config.showAppBar
+          ? AppBar(
+              elevation: 0,
+              backgroundColor: Colors.white,
+              automaticallyImplyLeading: false,
+              title: Row(
+                children: [
+                  if (boardState.availableBoards.length > 1)
+                    DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: boardState.currentBoardId,
+                        items: boardState.availableBoards.map((board) {
+                          return DropdownMenuItem<String>(
+                            value: board.id,
+                            child: Text(
+                              board.name,
+                              style: const TextStyle(
+                                color: Color(0xFF2D3142),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            ref
+                                .read(effectiveProvider.notifier)
+                                .switchBoard(val);
+                          }
+                        },
+                      ),
+                    ),
+                  const SizedBox(width: 16),
+                  if (widget.config.showSearchBar)
+                    Expanded(
+                      child: Container(
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF4F7F9),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: TextField(
+                          decoration: const InputDecoration(
+                            hintText: 'Search tasks...',
+                            hintStyle: TextStyle(
+                              color: Color(0xFF9094A6),
+                              fontSize: 13,
+                            ),
+                            border: InputBorder.none,
+                            prefixIcon: Icon(
+                              Icons.search,
+                              color: Color(0xFF9094A6),
+                              size: 16,
+                            ),
+                          ),
+                          style: const TextStyle(
+                            color: Color(0xFF2D3142),
+                            fontSize: 13,
+                          ),
+                          onChanged: (val) => ref
+                              .read(effectiveProvider.notifier)
+                              .updateSearchQuery(val),
                         ),
                       ),
-                    );
-                  }).toList(),
-                  onChanged: (val) {
-                    if (val != null) {
-                      ref.read(effectiveProvider.notifier).switchBoard(val);
-                    }
-                  },
-                ),
-              ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Container(
-                height: 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF4F7F9),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: TextField(
-                  decoration: const InputDecoration(
-                    hintText: 'Search tasks...',
-                    hintStyle: TextStyle(
-                      color: Color(0xFF9094A6),
-                      fontSize: 13,
                     ),
-                    border: InputBorder.none,
-                    prefixIcon: Icon(
-                      Icons.search,
-                      color: Color(0xFF9094A6),
-                      size: 16,
-                    ),
-                  ),
-                  style: const TextStyle(
-                    color: Color(0xFF2D3142),
-                    fontSize: 13,
-                  ),
-                  onChanged: (val) => ref
-                      .read(effectiveProvider.notifier)
-                      .updateSearchQuery(val),
-                ),
+                ],
               ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.add_circle_outline,
-              color: Color(0xFF4F5D75),
-            ),
-            onPressed: () {
-              _showAddColumnDialog(context, ref, effectiveProvider);
-            },
-            tooltip: 'Add Column',
-          ),
-        ],
-      ),
+              actions: [
+                if (widget.config.showAddColumnButton)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.add_circle_outline,
+                      color: Color(0xFF4F5D75),
+                    ),
+                    onPressed: () {
+                      _showAddColumnDialog(context, ref, effectiveProvider);
+                    },
+                    tooltip: 'Add Column',
+                  ),
+              ],
+            )
+          : null,
       body: Stack(
         children: [
           Container(
