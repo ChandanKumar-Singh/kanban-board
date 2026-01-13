@@ -48,8 +48,16 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
                   padding: EdgeInsets.zero,
                   borderRadius: BorderRadius.circular(20),
                   backgroundColor: Colors.white,
-                  builder: (context, task, isDragging) =>
-                      _buildCRMCard(context, task, isDragging),
+                  builder: (context, task, isDragging) => InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LeadDetailScreen(task: task),
+                      ),
+                    ),
+                    child: _buildCRMCard(context, task, isDragging),
+                  ),
                 ),
               ),
             ),

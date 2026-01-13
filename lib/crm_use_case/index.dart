@@ -8,3 +8,4 @@ part 'models/crm_task.dart';
 part 'provider/provider.dart';
 part 'views/crm_screen.dart';
 part 'views/add_lead_screen.dart';
+part 'views/lead_detail_screen.dart';
