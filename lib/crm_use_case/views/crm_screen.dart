@@ -197,13 +197,26 @@ class _CRMScreenState extends ConsumerState<CRMScreen> {
             ),
             const SizedBox(width: 8),
             _FilterChip(
-              label: 'Select Date Range',
+              label: (() {
+                if (_selectedFilter == 'Custom') {
+                  final range = ref.read(crmBoardProvider.notifier).customRange;
+                  if (range != null) {
+                    final df = DateFormat('dd MMM yyyy');
+                    return '${df.format(range.start)} - ${df.format(range.end)}';
+                  }
+                }
+                return 'Select Date Range';
+              })(),
               isSelected: _selectedFilter == 'Custom',
               onTap: () async {
+                final currentRange = ref
+                    .read(crmBoardProvider.notifier)
+                    .customRange;
                 final range = await showDateRangePicker(
                   context: context,
                   firstDate: DateTime(2020),
                   lastDate: DateTime.now(),
+                  initialDateRange: currentRange,
                 );
                 if (range != null) {
                   setState(() => _selectedFilter = 'Custom');

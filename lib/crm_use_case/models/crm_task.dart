@@ -9,6 +9,7 @@ class CRMTask extends KanbanTask {
   final String? source;
   final String? phone;
   final List<String> crmTags;
+  final DateTime? createdAt;
 
   CRMTask({
     required this.title,
@@ -19,6 +20,7 @@ class CRMTask extends KanbanTask {
     this.source,
     this.phone,
     this.crmTags = const [],
+    this.createdAt,
     String? id,
   }) : super(id: id ?? const Uuid().v4());
 
@@ -32,6 +34,7 @@ class CRMTask extends KanbanTask {
     String? source,
     String? phone,
     List<String>? crmTags,
+    DateTime? createdAt,
   }) {
     return CRMTask(
       id: id ?? this.id,
@@ -43,6 +46,7 @@ class CRMTask extends KanbanTask {
       source: source ?? this.source,
       phone: phone ?? this.phone,
       crmTags: crmTags ?? this.crmTags,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }

@@ -14,6 +14,7 @@ class CRMRepository extends KanbanRepository<CRMTask> {
         source: 'Website',
         crmTags: ['Today', '0-5 min', 'Website'],
         phone: '1234567890',
+        createdAt: DateTime.now(),
       ),
       CRMTask(
         title: 'Naman Tyagi',
@@ -25,6 +26,7 @@ class CRMRepository extends KanbanRepository<CRMTask> {
         source: 'CRM',
         crmTags: ['Today', '0-5 min', 'CRM'],
         phone: '0987654321',
+        createdAt: DateTime.now(),
       ),
       CRMTask(
         title: 'Vikram Mehta',
@@ -34,6 +36,7 @@ class CRMRepository extends KanbanRepository<CRMTask> {
         statusMessage: 'Completed initial assessment',
         crmTags: ['Yesterday', 'Finished'],
         phone: '9876543210',
+        createdAt: DateTime.now().subtract(const Duration(days: 1)),
       ),
     ],
     'lead': [
@@ -44,6 +47,7 @@ class CRMRepository extends KanbanRepository<CRMTask> {
         timeAgo: '10 min',
         statusMessage: 'Follow up required',
         crmTags: ['Today', 'CRM'],
+        createdAt: DateTime.now(),
       ),
     ],
   };
@@ -64,12 +68,14 @@ class CRMRepository extends KanbanRepository<CRMTask> {
           title: 'New Lead',
           colorValue: 0xFF1E293B,
           tasks: _data['new_lead'] ?? [],
+          hasMore: true,
         ),
         KanbanColumn(
           id: 'lead',
           title: 'Lead',
           colorValue: 0xFF1E293B,
           tasks: _data['lead'] ?? [],
+          hasMore: true,
         ),
       ],
     );
@@ -111,8 +117,19 @@ class CRMRepository extends KanbanRepository<CRMTask> {
   Future<void> updateTask(String columnId, CRMTask task) async {}
 
   @override
-  Future<List<CRMTask>> loadMore(String columnId, int currentLength) async =>
-      [];
+  Future<List<CRMTask>> loadMore(String columnId, int currentLength) async {
+    await Future.delayed(const Duration(seconds: 1)); // Simulate network
+    return [
+      CRMTask(
+        title: 'New Lead ${currentLength + 1}',
+        serviceType: 'Support',
+        address: 'Remote',
+        timeAgo: 'Just now',
+        statusMessage: 'Auto-generated lead',
+        crmTags: ['Today', 'New'],
+      ),
+    ];
+  }
 }
 
 // --- Provider ---
@@ -123,20 +140,49 @@ class CRMBoardNotifier extends KanbanBoardNotifier<CRMTask> {
   String _dateFilter = 'Today';
   DateTimeRange? _customRange;
 
+  DateTimeRange? get customRange => _customRange;
+  String get dateFilter => _dateFilter;
+
   CRMBoardNotifier(super.repository) {
     onFilter = (tasks, query) {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final yesterday = today.subtract(const Duration(days: 1));
+      final firstOfMonth = DateTime(now.year, now.month, 1);
+
       // 1. Filter by Date
       var filtered = tasks.where((t) {
+        if (t.createdAt == null) return true;
+        final taskDate = DateTime(
+          t.createdAt!.year,
+          t.createdAt!.month,
+          t.createdAt!.day,
+        );
+
         if (_dateFilter == 'Today') {
-          return t.crmTags.contains('Today');
+          return taskDate.isAtSameMomentAs(today);
         } else if (_dateFilter == 'Yesterday') {
-          return t.crmTags.contains('Yesterday');
+          return taskDate.isAtSameMomentAs(yesterday);
         } else if (_dateFilter == 'This Month') {
-          // Mock logic for month - in a real app we'd check actual date
-          return true;
+          return taskDate.isAfter(
+                firstOfMonth.subtract(const Duration(seconds: 1)),
+              ) &&
+              taskDate.isBefore(
+                firstOfMonth.add(const Duration(days: 31)),
+              ); // Precise month check would be better
         } else if (_dateFilter == 'Custom' && _customRange != null) {
-          // Mock logic for custom range
-          return true;
+          final start = DateTime(
+            _customRange!.start.year,
+            _customRange!.start.month,
+            _customRange!.start.day,
+          );
+          final end = DateTime(
+            _customRange!.end.year,
+            _customRange!.end.month,
+            _customRange!.end.day,
+          );
+          return taskDate.isAfter(start.subtract(const Duration(seconds: 1))) &&
+              taskDate.isBefore(end.add(const Duration(days: 1)));
         }
         return true;
       }).toList();
