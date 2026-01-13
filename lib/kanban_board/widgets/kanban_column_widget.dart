@@ -40,7 +40,7 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent -
-            widget.config.autoLoadThreshold) {
+            widget.config.columnProps.autoLoadThreshold) {
       if (widget.column.hasMore && !widget.column.isLoading) {
         final effectiveProvider =
             widget.provider ??
@@ -163,17 +163,22 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
     }
 
     return Container(
-      width: widget.config.columnWidth,
-      margin: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: _isHighlighted
-            ? Colors.blue.withOpacity(0.05)
-            : Colors.grey[100],
-        borderRadius: widget.config.borderRadius,
-        border: _isHighlighted
-            ? Border.all(color: Colors.blue, width: 1)
-            : null,
-      ),
+      width: widget.config.columnProps.width,
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration:
+          widget.config.columnProps.decoration ??
+          BoxDecoration(
+            color: _isHighlighted
+                ? Colors.blue.withOpacity(0.05)
+                : (widget.config.columnProps.backgroundColor ??
+                      const Color(0xFFF4F7FD)),
+            borderRadius:
+                widget.config.columnProps.borderRadius ??
+                widget.config.cardProps.borderRadius,
+            border: _isHighlighted
+                ? Border.all(color: Colors.blue, width: 1)
+                : null,
+          ),
       child: Column(
         children: [
           _buildHeader(context, filteredTasks.length, ref, effectiveProvider),
@@ -354,8 +359,8 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
     WidgetRef ref,
     StateNotifierProvider<KanbanBoardNotifier<T>, KanbanBoardState<T>> provider,
   ) {
-    if (widget.config.loadMoreBuilder != null) {
-      return widget.config.loadMoreBuilder!(
+    if (widget.config.columnProps.loadMoreBuilder != null) {
+      return widget.config.columnProps.loadMoreBuilder!(
         context,
         widget.column,
         ref.watch(provider),
@@ -380,8 +385,8 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
     WidgetRef ref,
     StateNotifierProvider<KanbanBoardNotifier<T>, KanbanBoardState<T>> provider,
   ) {
-    if (widget.config.columnHeaderBuilder != null) {
-      return widget.config.columnHeaderBuilder!(
+    if (widget.config.columnProps.headerBuilder != null) {
+      return widget.config.columnProps.headerBuilder!(
         context,
         widget.column,
         displayCount,
@@ -392,10 +397,10 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Color(widget.column.colorValue),
-        borderRadius: widget.config.borderRadius.copyWith(
-          bottomLeft: Radius.zero,
-          bottomRight: Radius.zero,
-        ),
+        borderRadius:
+            (widget.config.columnProps.borderRadius ??
+                    const BorderRadius.vertical(top: Radius.circular(12)))
+                .copyWith(bottomLeft: Radius.zero, bottomRight: Radius.zero),
       ),
       child: Row(
         children: [
@@ -403,7 +408,7 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
             child: Text(
               widget.column.title,
               style:
-                  widget.config.titleStyle ??
+                  widget.config.columnProps.titleStyle ??
                   const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -666,12 +671,16 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
             final feedback = Transform.rotate(
               angle: 0.1,
               child: Transform.scale(
-                scale: 1 * 0.9,
+                scale: 0.9,
                 child: SizedBox(
-                  width: widget.config.columnWidth - 20,
-                  child: widget.config.cardBuilder != null
-                      ? widget.config.cardBuilder!(context, task, true)
-                      : KanbanTaskCard(task: task, isDragging: true),
+                  width: widget.config.columnProps.width - 20,
+                  child: widget.config.cardProps.builder != null
+                      ? widget.config.cardProps.builder!(context, task, true)
+                      : KanbanTaskCard<T>(
+                          task: task,
+                          isDragging: true,
+                          props: widget.config.cardProps,
+                        ),
                 ),
               ),
             );
@@ -680,9 +689,9 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
 
             final child = isThisTaskDragging
                 ? const SizedBox.shrink()
-                : (widget.config.cardBuilder != null
-                      ? widget.config.cardBuilder!(context, task, false)
-                      : KanbanTaskCard(
+                : (widget.config.cardProps.builder != null
+                      ? widget.config.cardProps.builder!(context, task, false)
+                      : KanbanTaskCard<T>(
                           task: task,
                           onTap: () {
                             if (widget.config.onTaskTap != null) {
@@ -692,39 +701,13 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
                             final screenWidth = MediaQuery.of(
                               context,
                             ).size.width;
-                            if (screenWidth > 900) {
-                              watchRef
-                                  .read(provider.notifier)
-                                  .selectTask(task, widget.column.id);
+                            if (screenWidth < 600) {
+                              _showTaskDetailSheet(context, task, provider);
                             } else {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (context) => Container(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.85,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(20),
-                                    ),
-                                  ),
-                                  clipBehavior: Clip.antiAlias,
-                                  child: task is DefaultKanbanTask
-                                      ? TaskDetailSheet(
-                                          task: task as DefaultKanbanTask,
-                                          columnId: widget.column.id,
-                                        )
-                                      : const Center(
-                                          child: Text(
-                                            "Custom detail sheet needed",
-                                          ),
-                                        ),
-                                ),
-                              );
+                              _showTaskDetailDialog(context, task, provider);
                             }
                           },
+                          props: widget.config.cardProps,
                         ));
 
             if (kIsWeb) {
@@ -756,6 +739,50 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
           },
         );
       },
+    );
+  }
+
+  void _showTaskDetailSheet(
+    BuildContext context,
+    T task,
+    StateNotifierProvider<KanbanBoardNotifier<T>, KanbanBoardState<T>> provider,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.85,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: task is DefaultKanbanTask
+            ? TaskDetailSheet(
+                task: task as DefaultKanbanTask,
+                columnId: widget.column.id,
+              )
+            : const Center(child: Text("Custom detail sheet needed")),
+      ),
+    );
+  }
+
+  void _showTaskDetailDialog(
+    BuildContext context,
+    T task,
+    StateNotifierProvider<KanbanBoardNotifier<T>, KanbanBoardState<T>> provider,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => TaskDetailDialog(
+        task: task,
+        onSave: (updatedTask) {
+          ref
+              .read(provider.notifier)
+              .updateTask(widget.column.id, updatedTask as T);
+        },
+      ),
     );
   }
 }

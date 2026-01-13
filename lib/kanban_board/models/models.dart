@@ -5,8 +5,8 @@ const _uuid = Uuid();
 enum TaskPriority { low, medium, high }
 
 class KanbanTask {
-  final String  id;
-  KanbanTask({required this.id});  
+  final String id;
+  KanbanTask({required this.id});
 }
 
 class DefaultKanbanTask implements KanbanTask {
@@ -109,46 +109,66 @@ typedef KanbanLoadMoreBuilder<T extends KanbanTask> =
       KanbanBoardState<T> state,
     );
 
-class KanbanConfig<T extends KanbanTask> {
-  final double cardElevation;
-  final double columnWidth;
-  final EdgeInsets cardMargin;
-  final BorderRadius borderRadius;
-  final TextStyle? titleStyle;
-  final Function(T, String, String)? onTaskMoved;
-
-  // New generic builders and callbacks
-  final KanbanCardBuilder<T>? cardBuilder;
-  final KanbanColumnHeaderBuilder<T>? columnHeaderBuilder;
-  final KanbanFilterCallback<T>? onFilter;
+class KanbanColumnProps<T extends KanbanTask> {
+  final double width;
+  final KanbanColumnHeaderBuilder<T>? headerBuilder;
   final KanbanLoadMoreBuilder<T>? loadMoreBuilder;
+  final double autoLoadThreshold;
+  final Decoration? decoration;
+  final EdgeInsets? padding;
+  final Color? backgroundColor;
+  final BorderRadius? borderRadius;
+  final TextStyle? titleStyle;
 
-  // Interaction hooks
+  const KanbanColumnProps({
+    this.width = 300,
+    this.headerBuilder,
+    this.loadMoreBuilder,
+    this.autoLoadThreshold = 100,
+    this.decoration,
+    this.padding,
+    this.backgroundColor,
+    this.borderRadius,
+    this.titleStyle,
+  });
+}
+
+class KanbanCardProps<T extends KanbanTask> {
+  final KanbanCardBuilder<T>? builder;
+  final double elevation;
+  final EdgeInsets margin;
+  final BorderRadius borderRadius;
+
+  const KanbanCardProps({
+    this.builder,
+    this.elevation = 2,
+    this.margin = const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+    this.borderRadius = const BorderRadius.all(Radius.circular(12)),
+  });
+}
+
+class KanbanConfig<T extends KanbanTask> {
+  final KanbanColumnProps<T> columnProps;
+  final KanbanCardProps<T> cardProps;
+
+  // Global hooks & callbacks
+  final KanbanFilterCallback<T>? onFilter;
+  final Function(T, String, String)? onTaskMoved;
   final Function(T)? onTaskTap;
   final Function(String, T)? onTaskCreated;
   final Function(String, String)? onTaskDeleted;
   final Function(KanbanColumn<T>)? onColumnCreated;
   final Function(String)? onColumnDeleted;
 
-  // Infinite Scroll settings
-  final double autoLoadThreshold; // Distance from bottom to trigger load
-
   const KanbanConfig({
-    this.cardElevation = 2,
-    this.columnWidth = 300,
-    this.cardMargin = const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-    this.borderRadius = const BorderRadius.all(Radius.circular(12)),
-    this.titleStyle,
-    this.onTaskMoved,
-    this.cardBuilder,
-    this.columnHeaderBuilder,
+    this.columnProps = const KanbanColumnProps(),
+    this.cardProps = const KanbanCardProps(),
     this.onFilter,
+    this.onTaskMoved,
     this.onTaskTap,
     this.onTaskCreated,
     this.onTaskDeleted,
     this.onColumnCreated,
     this.onColumnDeleted,
-    this.loadMoreBuilder,
-    this.autoLoadThreshold = 100,
   });
 }

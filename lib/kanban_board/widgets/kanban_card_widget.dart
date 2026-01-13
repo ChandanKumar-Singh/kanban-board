@@ -4,12 +4,14 @@ class KanbanTaskCard<T extends KanbanTask> extends StatelessWidget {
   final T task;
   final VoidCallback? onTap;
   final bool isDragging;
+  final KanbanCardProps<T> props;
 
   const KanbanTaskCard({
     super.key,
     required this.task,
     this.onTap,
     this.isDragging = false,
+    this.props = const KanbanCardProps(),
   });
 
   @override
@@ -21,11 +23,11 @@ class KanbanTaskCard<T extends KanbanTask> extends StatelessWidget {
         child: GestureDetector(
           onTap: onTap,
           child: Container(
-            margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+            margin: props.margin,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: props.borderRadius,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
@@ -46,10 +48,10 @@ class KanbanTaskCard<T extends KanbanTask> extends StatelessWidget {
     final t = task as DefaultKanbanTask;
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+      margin: props.margin,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: props.borderRadius,
         boxShadow: isDragging
             ? [
                 BoxShadow(
@@ -79,7 +81,7 @@ class KanbanTaskCard<T extends KanbanTask> extends StatelessWidget {
               ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: props.borderRadius,
         child: Material(
           color: Colors.transparent,
           child: InkWell(

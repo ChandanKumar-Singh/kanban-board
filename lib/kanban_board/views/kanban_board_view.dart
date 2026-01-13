@@ -195,7 +195,7 @@ class _KanbanBoardViewState<T extends KanbanTask>
                               provider: effectiveProvider,
                             );
                           }),
-                          const SizedBox(width: 300),
+                          SizedBox(width: widget.config.columnProps.width),
                         ],
                       ),
                     ),

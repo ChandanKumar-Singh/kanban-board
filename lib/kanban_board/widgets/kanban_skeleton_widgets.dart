@@ -1,7 +1,9 @@
 part of '../index.dart';
 
 class KanbanCardSkeleton extends StatelessWidget {
-  const KanbanCardSkeleton({super.key});
+  final KanbanCardProps props;
+
+  const KanbanCardSkeleton({super.key, this.props = const KanbanCardProps()});
 
   @override
   Widget build(BuildContext context) {
@@ -10,8 +12,8 @@ class KanbanCardSkeleton extends StatelessWidget {
       highlightColor: Colors.grey[100]!,
       child: Card(
         elevation: 0,
-        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        margin: props.margin,
+        shape: RoundedRectangleBorder(borderRadius: props.borderRadius),
         child: Container(
           height: 100,
           padding: const EdgeInsets.all(12.0),
@@ -44,17 +46,23 @@ class KanbanCardSkeleton extends StatelessWidget {
 }
 
 class KanbanColumnSkeleton extends StatelessWidget {
-  const KanbanColumnSkeleton({Key? key}) : super(key: key);
+  final KanbanConfig config;
+
+  const KanbanColumnSkeleton({super.key, this.config = const KanbanConfig()});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 300,
+      width: config.columnProps.width,
       margin: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration:
+          config.columnProps.decoration ??
+          BoxDecoration(
+            color: config.columnProps.backgroundColor ?? Colors.grey[100],
+            borderRadius:
+                config.columnProps.borderRadius ??
+                config.cardProps.borderRadius,
+          ),
       child: Column(
         children: [
           Shimmer.fromColors(
@@ -62,9 +70,15 @@ class KanbanColumnSkeleton extends StatelessWidget {
             highlightColor: Colors.grey[200]!,
             child: Container(
               height: 50,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                borderRadius:
+                    (config.columnProps.borderRadius ??
+                            config.cardProps.borderRadius)
+                        .copyWith(
+                          bottomLeft: Radius.zero,
+                          bottomRight: Radius.zero,
+                        ),
               ),
             ),
           ),
@@ -72,7 +86,8 @@ class KanbanColumnSkeleton extends StatelessWidget {
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: 5,
-              itemBuilder: (context, index) => KanbanCardSkeleton(),
+              itemBuilder: (context, index) =>
+                  KanbanCardSkeleton(props: config.cardProps),
             ),
           ),
         ],
