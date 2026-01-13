@@ -121,14 +121,26 @@ class CustomKanbanRepository extends KanbanRepository<CustomKanbanTask> {
     String toColumnId,
     int toIndex,
   ) async {
-    final task = _data[fromColumnId]!.firstWhere((t) => t.id == taskId);
-    _data[fromColumnId]!.remove(task);
+    final columnData = _data[fromColumnId];
+    if (columnData == null) return;
+
+    final taskIndex = columnData.indexWhere((t) => t.id == taskId);
+    if (taskIndex == -1) return;
+
+    final task = columnData[taskIndex];
+    columnData.removeAt(taskIndex);
+
     if (!_data.containsKey(toColumnId)) {
       _data[toColumnId] = [];
     }
-    _data[toColumnId]!.insert(toIndex, task);
-    print(
-      'Backend: Moved task $taskId from $fromColumnId to $toColumnId at index $toIndex',
+
+    final targetList = _data[toColumnId]!;
+    // Clamp index to valid range
+    final actualIndex = toIndex.clamp(0, targetList.length);
+    targetList.insert(actualIndex, task);
+
+    debugPrint(
+      'Backend: Moved task $taskId from $fromColumnId to $toColumnId at index $actualIndex (requested $toIndex)',
     );
   }
 
@@ -192,7 +204,8 @@ class _KanbanScreenState extends State<KanbanScreen> {
       body: Column(
         children: [
           Expanded(
-            // height: 230,
+          // SizedBox(
+          //   height: 230,
             child: KanbanBoardView<CustomKanbanTask>(
               provider: customKanbanBoardProvider,
               config: KanbanConfig<CustomKanbanTask>(

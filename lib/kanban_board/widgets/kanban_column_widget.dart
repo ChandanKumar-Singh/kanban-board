@@ -246,8 +246,22 @@ class _KanbanColumnWidgetState<T extends KanbanTask>
                         widget.column.id,
                         dropIndex,
                       );
+
+                  // Read updated state to find the task for the callback
+                  final updatedState = ref.read(effectiveProvider);
+                  final targetColumn = updatedState.columns.firstWhere(
+                    (c) => c.id == widget.column.id,
+                  );
+                  final movedTask = targetColumn.tasks.firstWhere(
+                    (t) => t.id == taskId,
+                    orElse: () => latestState.columns
+                        .firstWhere((c) => c.id == fromColumnId)
+                        .tasks
+                        .firstWhere((t) => t.id == taskId),
+                  );
+
                   widget.config.onTaskMoved?.call(
-                    widget.column.tasks.firstWhere((t) => t.id == taskId),
+                    movedTask,
                     fromColumnId,
                     widget.column.id,
                   );
